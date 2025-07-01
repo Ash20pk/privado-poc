@@ -1,102 +1,230 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Wallet, User, Key, Shield, FileCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+// Types for our wallet
+type Identity = {
+  did: string;
+  created: string;
+  profile?: string;
+};
+
+type Credential = {
+  id: string;
+  type: string[];
+  issuer: string;
+  issuanceDate: string;
+  credentialSubject: any;
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState("wallet");
+  const [identities, setIdentities] = useState<Identity[]>([]);
+  const [credentials, setCredentials] = useState<Credential[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    // Check if we have any identities in local storage
+    const storedIdentities = localStorage.getItem('identities');
+    if (storedIdentities) {
+      setIdentities(JSON.parse(storedIdentities));
+    }
+    
+    // Check if we have any credentials in local storage
+    const storedCredentials = localStorage.getItem('credentials');
+    if (storedCredentials) {
+      setCredentials(JSON.parse(storedCredentials));
+    }
+    
+    setLoading(false);
+  }, []);
+  
+  const handleCreateIdentity = () => {
+    router.push('/wallet');
+  };
+  
+  const handleDeleteCredential = (id: string) => {
+    const updatedCredentials = credentials.filter(cred => cred.id !== id);
+    setCredentials(updatedCredentials);
+    localStorage.setItem('credentials', JSON.stringify(updatedCredentials));
+  };
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  return (
+    <div className="container mx-auto py-8 px-4">
+      <header className="flex justify-between items-center mb-8">
+        <div className="flex items-center gap-2">
+          <Wallet className="h-8 w-8" />
+          <h1 className="text-2xl font-bold">Polygon ID Wallet</h1>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+        <Button onClick={handleCreateIdentity}>
+          {identities.length > 0 ? "Manage Wallet" : "Create Wallet"}
+        </Button>
+      </header>
+
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      ) : (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsTrigger value="wallet">
+              <User className="h-4 w-4 mr-2" /> Identities
+            </TabsTrigger>
+            <TabsTrigger value="credentials">
+              <FileCheck className="h-4 w-4 mr-2" /> Credentials
+            </TabsTrigger>
+            <TabsTrigger value="proofs">
+              <Shield className="h-4 w-4 mr-2" /> Proofs
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="wallet" className="space-y-4">
+            {identities.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <User className="h-16 w-16 text-gray-400 mb-4" />
+                  <h3 className="text-xl font-medium mb-2">No Identities Found</h3>
+                  <p className="text-gray-500 mb-6 text-center max-w-md">
+                    You haven't created any Polygon ID identities yet. Create your first identity to start using the wallet.
+                  </p>
+                  <Button onClick={handleCreateIdentity}>Create Identity</Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {identities.map((identity) => (
+                  <Card key={identity.did}>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <User className="h-5 w-5" />
+                        Identity
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-medium mb-1">DID</p>
+                          <p className="text-sm text-gray-600 break-all bg-gray-50 p-2 rounded">
+                            {identity.did}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium mb-1">Created</p>
+                          <p className="text-sm text-gray-600">
+                            {new Date(identity.created).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            Active
+                          </Badge>
+                          <Button variant="outline" size="sm" onClick={handleCreateIdentity}>
+                            Manage
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="credentials" className="space-y-4">
+            {credentials.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <FileCheck className="h-16 w-16 text-gray-400 mb-4" />
+                  <h3 className="text-xl font-medium mb-2">No Credentials Found</h3>
+                  <p className="text-gray-500 mb-6 text-center max-w-md">
+                    You haven't received any verifiable credentials yet. Go to the wallet page to issue a credential.
+                  </p>
+                  <Button onClick={handleCreateIdentity}>Go to Wallet</Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {credentials.map((credential) => (
+                  <Card key={credential.id}>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileCheck className="h-5 w-5" />
+                        {credential.type[credential.type.length - 1]}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-medium mb-1">Issuer</p>
+                          <p className="text-sm text-gray-600 break-all">
+                            {credential.issuer}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium mb-1">Issued Date</p>
+                          <p className="text-sm text-gray-600">
+                            {new Date(credential.issuanceDate).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            Valid
+                          </Badge>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-red-600 hover:bg-red-50"
+                            onClick={() => handleDeleteCredential(credential.id)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="proofs" className="space-y-4">
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Shield className="h-16 w-16 text-gray-400 mb-4" />
+                <h3 className="text-xl font-medium mb-2">Zero-Knowledge Proofs</h3>
+                <p className="text-gray-500 mb-6 text-center max-w-md">
+                  Generate and manage zero-knowledge proofs from your credentials without revealing sensitive information.
+                </p>
+                <Button onClick={handleCreateIdentity}>Go to Wallet</Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      )}
+
+      <footer className="mt-16 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm">
+        <p>Powered by Polygon ID - Privacy-Preserving Identity Management</p>
+        <div className="flex justify-center gap-4 mt-4">
+          <Link href="/wallet" className="hover:text-primary">
+            Wallet
+          </Link>
+          <Link href="https://polygon.technology/polygon-id" target="_blank" className="hover:text-primary">
+            Learn More
+          </Link>
+          <Link href="https://docs.privado.id" target="_blank" className="hover:text-primary">
+            Documentation
+          </Link>
+        </div>
       </footer>
     </div>
   );
