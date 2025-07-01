@@ -348,7 +348,9 @@ export class WalletService {
       
       // Create a credential request with proper types
       const credentialRequest: any = {
-        credentialSchema: "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json/KYCAgeCredential-v3.json",
+        credentialSchema: type === "HumanityVerification" 
+          ? "https://raw.githubusercontent.com/Ash20pk/privado-poc/main/public/schemas/json/HumanityVerification-v1.json"
+          : "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json/KYCAgeCredential-v3.json",
         type,
         credentialSubject: subject,
         // Use numeric timestamp for expiration as required by the SDK

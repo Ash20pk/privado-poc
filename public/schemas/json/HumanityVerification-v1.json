@@ -3,8 +3,8 @@
   "type": "object",
   "$metadata": {
     "uris": {
-      "jsonLdContext": "/schemas/json-ld/humanity-v1.json-ld",
-      "jsonSchema": "/schemas/json/HumanityVerification-v1.json"
+      "jsonLdContext": "https://raw.githubusercontent.com/Ash20pk/privado-poc/main/public/schemas/json-ld/humanity-v1.json-ld",
+      "jsonSchema": "https://raw.githubusercontent.com/Ash20pk/privado-poc/main/public/schemas/json/HumanityVerification-v1.json"
     },
     "serialization": {
       "indexDataSlotA": "isHuman",

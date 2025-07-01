@@ -310,7 +310,7 @@ const HumanityVerificationWallet: React.FC = () => {
       const query = {
         allowedIssuers: ["*"],
         type: "HumanityVerification",
-        context: "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
+        context: "https://raw.githubusercontent.com/Ash20pk/privado-poc/main/public/schemas/json-ld/humanity-v1.json-ld",
         credentialSubject: {
           isHuman: {
             $eq: true // Prove that the user is human
