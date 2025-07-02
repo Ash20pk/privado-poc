@@ -20,6 +20,7 @@ import {
   ICircuitStorage,
   core
 } from '@0xpolygonid/js-sdk';
+import { v4 as uuidv4 } from 'uuid';
 
 // Default Ethereum connection config for Polygon Amoy testnet
 const defaultEthConnectionConfig = {
@@ -346,15 +347,22 @@ export class WalletService {
         throw new Error('Wallet not initialized');
       }
       
+      console.log(`Issuing ${type} credential to ${subject.id} from issuer ${issuerDid}`);
+      
       // Create a credential request with proper types
       const credentialRequest: any = {
-        credentialSchema: type === "HumanityVerification" 
-          ? "https://raw.githubusercontent.com/Ash20pk/privado-poc/main/public/schemas/json/HumanityVerification-v1.json"
-          : "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json/KYCAgeCredential-v3.json",
+        id: `urn:uuid:${uuidv4()}`,
+        credentialSchema: "https://ipfs.io/ipfs/QmYpsAHYPrNNaNc2o9SAMrPknSAYYAbse4hYxQgMP64Tvj",
         type,
         credentialSubject: subject,
         // Use numeric timestamp for expiration as required by the SDK
-        expiration: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 365, // 1 year from now in seconds
+        expirationDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+        // Required for W3C credential
+        '@context': [
+          'https://www.w3.org/2018/credentials/v1',
+          'https://ipfs.io/ipfs/QmcUEDa42Er4nfNFmGQVjiNYFaik6kvNQjfTeBrdSx83At'
+        ],
+        // Add revocation options
         revocationOpts: {
           type: CredentialStatusType.Iden3ReverseSparseMerkleTreeProof,
           id: process.env.REACT_APP_RHS_URL || 'https://rhs-staging.polygonid.me'
@@ -362,9 +370,8 @@ export class WalletService {
       };
       
       // Create a DID wrapper for the issuer
-      const didWrapper = { 
+      const issuerDidObj = {
         string: () => issuerDid,
-        // Add other required properties to satisfy the DID interface
         method: core.DidMethod.Iden3,
         id: issuerDid.split(':').pop() || '',
         blockchain: core.Blockchain.Polygon,
@@ -373,7 +380,7 @@ export class WalletService {
       
       // Issue the credential
       const credential = await this.wallet.issueCredential(
-        didWrapper,
+        issuerDidObj,
         credentialRequest
       );
       

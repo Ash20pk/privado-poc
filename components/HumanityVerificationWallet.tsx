@@ -49,16 +49,17 @@ interface HumanityCredential {
   type: string[];
   issuer: string;
   issuanceDate: string;
-  credentialSubject: {
-    id: string;
-    isHuman: boolean;
-    verificationType: string;
-    verificationLevel: string;
-    biometricHash?: string;
+  credentialSubject: any;
+  captureMethod?: "activePhoto" | "inPersonCheck" | "other";
+  captureDevice?: {
+    deviceType: "mobile" | "laptop" | "other";
+    operatingSystem?: string;
   };
-  isHuman: boolean;
-  verificationType: string;
-  verificationLevel: string;
+  userHash?: string;
+  reputationLevel?: number;
+  lastVerificationDate?: number;
+  firstVerificationDate?: number;
+  confidenceScore?: number;
 }
 
 interface Proof {
@@ -73,12 +74,12 @@ interface Proof {
 }
 
 interface HumanityVerificationForm {
-  verificationType: string;
-  documentType: string;
-  isHuman: boolean;
-  verificationLevel: string;
-  biometricHash: string;
-  documentNumber: string;
+  captureMethod: "activePhoto" | "inPersonCheck" | "other";
+  deviceType: "mobile" | "laptop" | "other";
+  operatingSystem: string;
+  userHash: string;
+  reputationLevel: number;
+  confidenceScore: number;
 }
 
 const HumanityVerificationWallet: React.FC = () => {
@@ -110,12 +111,12 @@ const HumanityVerificationWallet: React.FC = () => {
   
   // Form state
   const [humanityVerificationForm, setHumanityVerificationForm] = useState<HumanityVerificationForm>({
-    verificationType: 'biometric', 
-    documentType: 'passport', 
-    isHuman: true,
-    verificationLevel: 'high', 
-    biometricHash: '',
-    documentNumber: ''
+    captureMethod: "activePhoto",
+    deviceType: "mobile",
+    operatingSystem: navigator.userAgent,
+    userHash: "",
+    reputationLevel: 1000,
+    confidenceScore: 95
   });
 
   // Update component state based on the wallet hook
@@ -148,16 +149,13 @@ const HumanityVerificationWallet: React.FC = () => {
     if (credentials && credentials.length > 0) {
       // Filter for humanity credentials
       const humanityCredsList = credentials.filter(cred => 
-        cred.type && cred.type.includes('HumanityCredential')
+        cred.type && cred.type.includes('HumanityVerification')
       ).map(cred => ({
         id: cred.id,
         type: cred.type,
         issuer: cred.issuer,
         issuanceDate: cred.issuanceDate,
-        credentialSubject: cred.credentialSubject,
-        isHuman: cred.credentialSubject.isHuman,
-        verificationType: cred.credentialSubject.verificationType,
-        verificationLevel: cred.credentialSubject.verificationLevel
+        credentialSubject: cred.credentialSubject
       }));
       
       setHumanityCredentials(humanityCredsList);
@@ -250,13 +248,16 @@ const HumanityVerificationWallet: React.FC = () => {
       // Prepare the credential subject data
       const credentialSubject = {
         id: userIdentity.did,
-        isHuman: humanityVerificationForm.isHuman,
-        verificationType: humanityVerificationForm.verificationType,
-        verificationLevel: humanityVerificationForm.verificationLevel,
-        documentType: humanityVerificationForm.documentType,
-        biometricHash: humanityVerificationForm.biometricHash || `bio_${Math.random().toString(36).substring(2, 16)}`,
-        documentNumber: humanityVerificationForm.documentNumber || `doc_${Math.random().toString(36).substring(2, 12)}`,
-        verificationTimestamp: Math.floor(Date.now() / 1000)
+        captureMethod: humanityVerificationForm.captureMethod,
+        captureDevice: {
+          deviceType: humanityVerificationForm.deviceType,
+          operatingSystem: humanityVerificationForm.operatingSystem
+        },
+        userHash: humanityVerificationForm.userHash || `user_${Math.random().toString(36).substring(2, 16)}`,
+        reputationLevel: humanityVerificationForm.reputationLevel,
+        lastVerificationDate: Math.floor(Date.now() / 1000),
+        firstVerificationDate: Math.floor(Date.now() / 1000),
+        confidenceScore: humanityVerificationForm.confidenceScore
       };
 
       // Issue the credential using the wallet hook
@@ -277,9 +278,13 @@ const HumanityVerificationWallet: React.FC = () => {
         issuer: credential.issuer,
         issuanceDate: credential.issuanceDate || new Date().toISOString(),
         credentialSubject: credential.credentialSubject,
-        isHuman: Boolean(credential.credentialSubject.isHuman),
-        verificationType: String(credential.credentialSubject.verificationType),
-        verificationLevel: String(credential.credentialSubject.verificationLevel)
+        captureMethod: credential.credentialSubject.captureMethod,
+        captureDevice: credential.credentialSubject.captureDevice,
+        userHash: credential.credentialSubject.userHash,
+        reputationLevel: credential.credentialSubject.reputationLevel,
+        confidenceScore: credential.credentialSubject.confidenceScore,
+        lastVerificationDate: credential.credentialSubject.lastVerificationDate,
+        firstVerificationDate: credential.credentialSubject.firstVerificationDate
       };
 
       // Update local state
@@ -300,23 +305,21 @@ const HumanityVerificationWallet: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      setSuccess(null);
-
+      
       if (!userIdentity) {
-        throw new Error("User identity is not initialized");
+        throw new Error('User identity must be created first');
       }
-
-      // Create a query for the proof generation
+      
       const query = {
         allowedIssuers: ["*"],
         type: "HumanityVerification",
-        context: "https://raw.githubusercontent.com/Ash20pk/privado-poc/main/public/schemas/json-ld/humanity-v1.json-ld",
+        context: "https://ipfs.io/ipfs/QmcUEDa42Er4nfNFmGQVjiNYFaik6kvNQjfTeBrdSx83At",
         credentialSubject: {
-          isHuman: {
-            $eq: true // Prove that the user is human
+          reputationLevel: {
+            $gt: 50 // Prove that reputation level is greater than 50
           },
-          verificationLevel: {
-            $in: ["medium", "high"] // Require medium or high verification
+          confidenceScore: {
+            $gt: 70 // Prove that confidence score is greater than 70
           }
         }
       };
@@ -500,65 +503,85 @@ const HumanityVerificationWallet: React.FC = () => {
                   <h3 className="text-xl font-semibold">Issue Humanity Credential</h3>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="verificationType">Verification Type</Label>
-                    <Select 
-                      value={humanityVerificationForm.verificationType}
-                      onValueChange={(value) => handleFormChange('verificationType', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="biometric">Biometric Scan</SelectItem>
-                        <SelectItem value="government_id">Government ID</SelectItem>
-                        <SelectItem value="social_verification">Social Verification</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="captureMethod">Capture Method</Label>
+                      <Select 
+                        value={humanityVerificationForm.captureMethod}
+                        onValueChange={(value) => setHumanityVerificationForm({...humanityVerificationForm, captureMethod: value as "activePhoto" | "inPersonCheck" | "other"})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select capture method" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="activePhoto">Active Photo</SelectItem>
+                          <SelectItem value="inPersonCheck">In-Person Check</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="deviceType">Device Type</Label>
+                      <Select 
+                        value={humanityVerificationForm.deviceType}
+                        onValueChange={(value) => setHumanityVerificationForm({...humanityVerificationForm, deviceType: value as "mobile" | "laptop" | "other"})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select device type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="mobile">Mobile</SelectItem>
+                          <SelectItem value="laptop">Laptop</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-
-                  <div>
-                    <Label htmlFor="documentType">Document Type</Label>
-                    <Select 
-                      value={humanityVerificationForm.documentType}
-                      onValueChange={(value) => handleFormChange('documentType', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="passport">Passport</SelectItem>
-                        <SelectItem value="drivers_license">Driver's License</SelectItem>
-                        <SelectItem value="national_id">National ID</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="reputationLevel">Reputation Level</Label>
+                      <Input 
+                        id="reputationLevel"
+                        type="number"
+                        placeholder="Enter reputation level"
+                        value={humanityVerificationForm.reputationLevel}
+                        onChange={(e) => setHumanityVerificationForm({...humanityVerificationForm, reputationLevel: parseInt(e.target.value)})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confidenceScore">Confidence Score</Label>
+                      <Input 
+                        id="confidenceScore"
+                        type="number"
+                        placeholder="Enter confidence score (0-100)"
+                        min="0"
+                        max="100"
+                        value={humanityVerificationForm.confidenceScore}
+                        onChange={(e) => setHumanityVerificationForm({...humanityVerificationForm, confidenceScore: parseInt(e.target.value)})}
+                      />
+                    </div>
                   </div>
-
-                  <div>
-                    <Label htmlFor="verificationLevel">Verification Level</Label>
-                    <Select 
-                      value={humanityVerificationForm.verificationLevel}
-                      onValueChange={(value) => handleFormChange('verificationLevel', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low (Basic)</SelectItem>
-                        <SelectItem value="medium">Medium (Standard)</SelectItem>
-                        <SelectItem value="high">High (Premium)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="biometricHash">Biometric Hash (Optional)</Label>
-                    <Input 
-                      id="biometricHash"
-                      placeholder="Auto-generated if empty"
-                      value={humanityVerificationForm.biometricHash}
-                      onChange={(e) => handleFormChange('biometricHash', e.target.value)}
-                    />
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="userHash">User Hash (Optional)</Label>
+                      <Input 
+                        id="userHash"
+                        placeholder="Enter user hash or leave empty for random"
+                        value={humanityVerificationForm.userHash}
+                        onChange={(e) => setHumanityVerificationForm({...humanityVerificationForm, userHash: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="operatingSystem">Operating System</Label>
+                      <Input 
+                        id="operatingSystem"
+                        placeholder="Operating system"
+                        value={humanityVerificationForm.operatingSystem}
+                        onChange={(e) => setHumanityVerificationForm({...humanityVerificationForm, operatingSystem: e.target.value})}
+                      />
+                    </div>
                   </div>
 
                   <Button 
@@ -579,10 +602,24 @@ const HumanityVerificationWallet: React.FC = () => {
                     {humanityCredentials.map((cred, idx) => (
                       <div key={idx} className="border rounded-lg p-3">
                         <div className="flex justify-between items-center">
-                          <Badge variant="outline">{cred.verificationType}</Badge>
+                          <Badge variant="outline">{cred.captureMethod}</Badge>
                           <span className="text-xs text-gray-500">{new Date(cred.issuanceDate).toLocaleDateString()}</span>
                         </div>
-                        <p className="text-sm mt-1 truncate">{cred.id}</p>
+                        <div className="text-xs mt-2 space-y-1">
+                          <div className="flex justify-between">
+                            <span className="font-medium">Reputation:</span>
+                            <span>{cred.reputationLevel}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">Confidence:</span>
+                            <span>{cred.confidenceScore}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">Device:</span>
+                            <span>{cred.captureDevice?.deviceType}</span>
+                          </div>
+                        </div>
+                        <p className="text-xs mt-2 text-gray-500 truncate">{cred.id}</p>
                         <Button 
                           size="sm" 
                           variant="outline" 
