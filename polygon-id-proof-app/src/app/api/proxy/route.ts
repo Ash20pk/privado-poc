@@ -27,7 +27,7 @@ async function handleRequest(req: NextRequest) {
     }
     
     // Make the request to the target URL with the ngrok header
-    const response = await fetch(targetUrl, {
+    const fetchResponse = await fetch(targetUrl, {
       headers: {
         'ngrok-skip-browser-warning': '1',
         'Content-Type': 'application/json'
@@ -35,31 +35,33 @@ async function handleRequest(req: NextRequest) {
     });
 
     // Get the response data
-    const data = await response.json();
+    const data = await fetchResponse.json();
     
     const sessionId = data.sessionId;
     
-    // Store the auth request in a file
-    const fs = require('fs');
-    const path = require('path');
-    
-    // Create sessions directory if it doesn't exist
-    const sessionDir = path.join(process.cwd(), 'sessions');
-    if (!fs.existsSync(sessionDir)) {
-      fs.mkdirSync(sessionDir, { recursive: true });
-    }
-    
-    // Write the auth request to a file with wallet address
-    const fileData = {
+    // Store the session data in a cookie instead of a file
+    const sessionData = {
       ...data,
       from: walletAddress // Add wallet address to the stored data
     };
     
-    const filePath = path.join(sessionDir, `${sessionId}.json`);
-    fs.writeFileSync(filePath, JSON.stringify(fileData, null, 2));
+    // Create a response with the data
+    const apiResponse = NextResponse.json(data);
     
-    // Return the response data
-    return NextResponse.json(data);
+    // Set a cookie with the session data (encrypted as JSON string)
+    // The cookie will expire in 1 hour (3600 seconds)
+    apiResponse.cookies.set({
+      name: `session-${sessionId}`,
+      value: JSON.stringify(sessionData),
+      httpOnly: true,
+      maxAge: 3600,
+      path: '/',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production'
+    });
+    
+    // Return the response with the cookie
+    return apiResponse;
   } catch (error) {
     console.error('Proxy error:', error);
     return NextResponse.json(

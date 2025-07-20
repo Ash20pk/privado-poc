@@ -34,18 +34,18 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Read the session data from file
-    const fs = require('fs');
-    const sessionFilePath = path.join(process.cwd(), 'sessions', `${sessionId}.json`);
+    // Read the session data from cookies
+    const cookies = request.cookies;
+    const sessionCookie = cookies.get(`session-${sessionId}`);
     
-    if (!fs.existsSync(sessionFilePath)) {
+    if (!sessionCookie || !sessionCookie.value) {
       return NextResponse.json(
         { success: false, error: "Session not found" },
         { status: 404 }
       );
     }
     
-    const sessionData = JSON.parse(fs.readFileSync(sessionFilePath, 'utf-8'));
+    const sessionData = JSON.parse(sessionCookie.value);
     const senderAddress = sessionData.from || "";
     
     // Execute KRNL
