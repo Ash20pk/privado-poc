@@ -1,0 +1,33 @@
+{
+  "request": {
+    "id": "6fb1b532-d5ac-4d74-86d1-f28898168786",
+    "thid": "6fb1b532-d5ac-4d74-86d1-f28898168786",
+    "from": "did:polygonid:polygon:amoy:2qQ68JkRcf3xrHPQPWZei3YeVzHPP58wYNxx2mEouR",
+    "typ": "application/iden3comm-plain-json",
+    "type": "https://iden3-communication.io/authorization/1.0/request",
+    "body": {
+      "reason": "test flow",
+      "message": "",
+      "callbackUrl": "https://talented-top-kite.ngrok-free.app/privado/api/callback?sessionId=1",
+      "scope": [
+        {
+          "id": 1,
+          "circuitId": "credentialAtomicQuerySigV2",
+          "query": {
+            "allowedIssuers": [
+              "*"
+            ],
+            "type": "UniquenessCredential",
+            "context": "https://raw.githubusercontent.com/Ash20pk/privado-poc/refs/heads/main/polygon-id-proof-app/public/schema/json-ld/UniquenessCredential.jsonld",
+            "credentialSubject": {
+              "confidenceScore": {
+                "$gt": 80
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "sessionId": 1
+}

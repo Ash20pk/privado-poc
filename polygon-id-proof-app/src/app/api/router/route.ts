@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ethers } from "krnl-sdk";
 import { abi as contractAbi, CONTRACT_ADDRESS, ENTRY_ID, ACCESS_TOKEN } from "../../../lib/krnlConfig";
+import path from "path";
 
 // Create a provider for KRNL RPC
 const krnlProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_KRNL);
@@ -14,7 +15,7 @@ if (!ENTRY_ID || !ACCESS_TOKEN || ENTRY_ID == undefined || ACCESS_TOKEN == undef
   console.error("Entry ID or Access Token not found");
 }
 
-// Encode parameters for kernel 1655
+// Encode parameters for kernel 
 const abiCoder = new ethers.AbiCoder();
 
 /**
@@ -23,8 +24,30 @@ const abiCoder = new ethers.AbiCoder();
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { token, senderAddress, sessionId } = body;
-
+    const { token, sessionId } = body;
+    
+    // Validate session ID
+    if (!sessionId) {
+      return NextResponse.json(
+        { success: false, error: "Session ID is required" },
+        { status: 400 }
+      );
+    }
+    
+    // Read the session data from file
+    const fs = require('fs');
+    const sessionFilePath = path.join(process.cwd(), 'sessions', `${sessionId}.json`);
+    
+    if (!fs.existsSync(sessionFilePath)) {
+      return NextResponse.json(
+        { success: false, error: "Session not found" },
+        { status: 404 }
+      );
+    }
+    
+    const sessionData = JSON.parse(fs.readFileSync(sessionFilePath, 'utf-8'));
+    const senderAddress = sessionData.from || "";
+    
     // Execute KRNL
     const executeResult = await executeKrnl(token, senderAddress, sessionId);
     

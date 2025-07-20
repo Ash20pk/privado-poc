@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { QrCode, Copy, CheckCircle, Clock } from 'lucide-react';
 import QRCode from 'qrcode';
-import axios from 'axios';
+import { useDynamicWallet } from '@/hooks/useDynamicWallet';
 
 export default function ExpressUniversalLink() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
@@ -13,6 +13,9 @@ export default function ExpressUniversalLink() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  
+  // Get wallet address from wagmi
+  const { wallet } = useDynamicWallet();
   
   // API endpoint configuration - using our Next.js proxy route instead of direct ngrok URL
   const apiUrl = "/api/proxy";
@@ -24,18 +27,25 @@ export default function ExpressUniversalLink() {
     
     try {
       // Fetch auth request from our local Next.js API proxy
-      const response = await fetch(apiUrl);
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          walletAddress: wallet.account || ''
+        })
+      });
+      
       if (!response.ok) {
         throw new Error(`Server returned ${response.status}`);
       }
       
       const authRequest = await response.json();
       
-      console.log('Auth request from server:', authRequest);
-      
       // Create universal link directly
       // This approach doesn't modify the auth request from the server
-      const encodedRequest = btoa(JSON.stringify(authRequest));
+      const encodedRequest = btoa(JSON.stringify(authRequest.request));
       const link = `https://wallet.privado.id/#i_m=${encodedRequest}`;
       setUniversalLink(link);
       
@@ -45,6 +55,11 @@ export default function ExpressUniversalLink() {
         margin: 2
       });
       setQrCodeDataUrl(qrCode);
+      
+      // Store the session ID for later use
+      if (authRequest.sessionId) {
+        localStorage.setItem('sessionId', authRequest.sessionId);
+      }
       
     } catch (err) {
       console.error('Error:', err);
@@ -81,6 +96,15 @@ export default function ExpressUniversalLink() {
         <CardDescription className="text-center">
           Generate a link for Polygon ID verification
         </CardDescription>
+        {wallet.isConnected ? (
+          <p className="text-green-500 text-sm text-center mt-2">
+            Wallet connected: {wallet.account?.slice(0, 6)}...{wallet.account?.slice(-4)}
+          </p>
+        ) : (
+          <p className="text-yellow-500 text-sm text-center mt-2">
+            No wallet connected. Connect a wallet for better experience.
+          </p>
+        )}
       </CardHeader>
       
       <CardContent className="space-y-4">
