@@ -24,12 +24,14 @@ const abiCoder = new ethers.AbiCoder();
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { token, sessionId } = body;
+    const { token } = body;
     
-    // Validate session ID
+    // Extract session ID from URL query parameters
+    const url = new URL(request.url);
+    const sessionId = url.searchParams.get('sessionId');
     if (!sessionId) {
       return NextResponse.json(
-        { success: false, error: "Session ID is required" },
+        { success: false, error: "Session ID not provided" },
         { status: 400 }
       );
     }
