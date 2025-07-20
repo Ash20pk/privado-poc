@@ -4,14 +4,14 @@ import { useAccount, useBalance, useWalletClient } from 'wagmi';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
-import { polygonAmoy } from '@/lib/wagmi';
+import { sepolia } from '@/lib/wagmi';
 
 export function useWagmiWallet() {
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { data: balance } = useBalance({
     address,
-    chainId: polygonAmoy.id,
+    chainId: sepolia.id,
   });
   const { user } = useDynamicContext();
   const [signer, setSigner] = useState<ethers.Signer | null>(null);

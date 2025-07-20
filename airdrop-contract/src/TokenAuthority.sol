@@ -8,7 +8,7 @@ import "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
 import "@oasisprotocol/sapphire-contracts/contracts/EthereumUtils.sol";
 // ===============================
 // Step 1
-// This TA contract is specifically built to be compatible with kernel ID 1683 as an example.
+// This TA contract is specifically built to be compatible with kernel ID 1686 as an example.
 // If you are using this source code as a project template, make sure you change the following lines.
 // Line 57
 // Line 58
@@ -46,6 +46,10 @@ contract TokenAuthority is Ownable {
         string err;
     }
 
+    struct Response {
+        string message;
+    }
+
     mapping(address => bool) private whitelist; // krnlNodePubKey to bool
     mapping(bytes32 => bool) private runtimeDigests; // runtimeDigest to bool
     mapping(uint256 => bool) private kernels; // kernelId to bool
@@ -58,7 +62,7 @@ contract TokenAuthority is Ownable {
         // kernels[REPLACE_WITH_KERNEL_ID] = true;
         // kernels[REPLACE_WITH_KERNEL_ID] = true;
         // kernels[REPLACE_WITH_KERNEL_ID] = true;
-        kernels[1683] = true;
+        kernels[1686] = true;
 
         // Set node whitelist
         whitelist[address(0xc770EAc29244C1F88E14a61a6B99d184bfAe93f5)] = true;
@@ -103,7 +107,7 @@ contract TokenAuthority is Ownable {
         );
 
         for (uint256 i = 0; i < _executions.length; i++) {
-            // if (_executions[i].kernelId == 1683) {
+            // if (_executions[i].kernelId == 1686) {
             //     // Change the code below to match with the return data type of this kernel
             //     uint256 result = abi.decode(_executions[i].result, (uint256));
             //     if (result > 0) {

@@ -11,7 +11,7 @@ contract ConfigureAirdropScript is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         
         // Replace with your deployed contract addresses
-        address airdropContractAddress = address(0x8f8B8478D49dBAc45167777D78fc6962955342E4); // Replace with your deployed AirdropContract address
+        address airdropContractAddress = address(0x0856E34b65f1397a197852F4f8E1EFf59C0f7757); // Replace with your deployed AirdropContract address
         address tokenAddress = address(0xC991c1C3Bb38071034468B87AfbFb5843C9FC47A); // Replace with your deployed token address, or leave as 0x0 to deploy a new one
         
         // Set the airdrop amount (100 tokens with 18 decimals)

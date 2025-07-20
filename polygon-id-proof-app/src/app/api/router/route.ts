@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ethers } from "krnl-sdk";
 import { abi as contractAbi, CONTRACT_ADDRESS, ENTRY_ID, ACCESS_TOKEN } from "../../../lib/krnlConfig";
-import path from "path";
+import supabase from '../../../lib/supabase';
 
 // Create a provider for KRNL RPC
 const krnlProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_KRNL);
@@ -21,44 +21,194 @@ const abiCoder = new ethers.AbiCoder();
 /**
  * API handler for executing KRNL with the provided address and player's move
  */
+// Add OPTIONS handler for CORS preflight requests
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': 'https://wallet.privado.id',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400' // 24 hours
+    }
+  });
+}
+
+// Define CORS headers once to reuse
+const corsHeaders = {
+  'Access-Control-Allow-Origin': 'https://wallet.privado.id',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+};
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { token } = body;
+    const body = await request.text();
+    const token = body;
     
-    // Extract session ID from URL query parameters
+    // Extract parameters from URL query parameters
     const url = new URL(request.url);
     const sessionId = url.searchParams.get('sessionId');
+    // Also check for senderAddress in query params
+    const querySenderAddress = url.searchParams.get('senderAddress');
+    
     if (!sessionId) {
       return NextResponse.json(
         { success: false, error: "Session ID not provided" },
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders
+        }
       );
     }
     
-    // Read the session data from cookies
-    const cookies = request.cookies;
-    const sessionCookie = cookies.get(`session-${sessionId}`);
+    // Try to get sender address from multiple sources
+    let senderAddress = "";
     
-    if (!sessionCookie || !sessionCookie.value) {
+    // 1. First check query parameters
+    if (querySenderAddress) {
+      senderAddress = querySenderAddress;
+    } else {
+      // 2. Try to get from Supabase
+      try {
+        // Query the session from Supabase
+        const { data: sessionRecord, error } = await supabase
+          .from('sessions')
+          .select('data')
+          .eq('session_id', sessionId)
+          .gt('expires_at', new Date().toISOString()) // Only get non-expired sessions
+          .single();
+        
+        if (error) {
+          console.error("Error fetching session from Supabase:", error);
+        } else if (sessionRecord && sessionRecord.data) {
+          // Extract the sender address from the session data
+          const sessionData = sessionRecord.data;
+          senderAddress = sessionData.from || "";
+        }
+      } catch (error) {
+        console.error("Error retrieving session from Supabase:", error);
+      }
+    }
+    
+    // If we still don't have a sender address, use a default or return an error
+    if (!senderAddress) {
       return NextResponse.json(
-        { success: false, error: "Session not found" },
-        { status: 404 }
+        { success: false, error: "Sender address not found" },
+        { 
+          status: 400,
+          headers: corsHeaders
+        }
       );
     }
     
-    const sessionData = JSON.parse(sessionCookie.value);
-    const senderAddress = sessionData.from || "";
-    
-    // Execute KRNL
+    // // Execute KRNL
     const executeResult = await executeKrnl(token, senderAddress, sessionId);
+
+    let isVerificationSuccessful = false;
+    let processedResponses = [];
     
-    // If signer is provided in the request, we'll return just the execute result
-    // Otherwise, we'll return both the execute result and a message
+    if (executeResult && executeResult.kernel_responses && executeResult.kernel_responses.length > 0) {
+      try {
+        // Decode the array of KernelResponse
+        // KernelResponse struct: { uint256 kernelId, bytes result, string err }
+        const decodedResponses = abiCoder.decode(["tuple(uint256,bytes,string)[]"], executeResult.kernel_responses);
+        
+        // Process each KernelResponse
+        if (decodedResponses && decodedResponses.length > 0 && decodedResponses[0].length > 0) {
+          const responses = decodedResponses[0];
+          
+          for (let i = 0; i < responses.length; i++) {
+            const response = responses[i];
+            const kernelId = response[0]; // uint256 kernelId
+            const resultBytes = response[1]; // bytes result
+            const errorMsg = response[2]; // string err
+            
+            // If there's result data and no error, try to decode the result
+            let resultString = null;
+            if (resultBytes && resultBytes.length > 0 && !errorMsg) {
+              try {
+                const decodedResult = abiCoder.decode(["tuple(string)"], resultBytes);
+                resultString = decodedResult[0][0]; // Extract the string from the tuple
+                
+                // Check if the result is 'success'
+                if (resultString && resultString.toLowerCase() === 'success') {
+                  isVerificationSuccessful = true;
+                }
+                
+                // Add to processed responses
+                processedResponses.push({
+                  kernelId: kernelId.toString(),
+                  result: resultString,
+                  error: errorMsg
+                });
+              } catch (decodeError) {
+                // Add to processed responses with the error
+                processedResponses.push({
+                  kernelId: kernelId.toString(),
+                  result: null,
+                  error: errorMsg || `Failed to decode result: ${decodeError instanceof Error ? decodeError.message : String(decodeError)}`
+                });
+              }
+            } else {
+              // Add to processed responses
+              processedResponses.push({
+                kernelId: kernelId.toString(),
+                result: null,
+                error: errorMsg
+              });
+            }
+          }
+        }
+      } catch (decodeError) {
+        console.error("Error decoding kernel_responses:", decodeError);
+      }
+    }
+
+    // Update the session record with verification status
+    try {
+      const updateData: any = {
+        verification_status: {
+          success: isVerificationSuccessful,
+          timestamp: new Date().toISOString(),
+          message: isVerificationSuccessful ? "Verification successful" : "Verification failed",
+          processed_responses: processedResponses
+        }
+      };
+      
+      // Only store executeResult in data field if verification is successful
+      if (isVerificationSuccessful) {
+        updateData.data = executeResult; // Overwrite the data field with executeResult
+      }
+      
+      await supabase
+        .from('sessions')
+        .update(updateData)
+        .eq('session_id', sessionId);
+    } catch (error) {
+      console.error("Error updating session verification status:", error);
+    }
+    
+    if (!isVerificationSuccessful) {
+      return NextResponse.json({
+        success: false,
+        error: "Verification failed"
+      }, {
+        headers: corsHeaders
+      });
+    }
+    
+    // The session is already updated in Supabase above, so the frontend polling will pick it up
+    // No need for an additional API call since the verification-status endpoint reads from Supabase
+    console.log(`Verification completed for session ${sessionId}. Frontend polling will detect the change.`);
+    
+    // Return response based on verification result
     return NextResponse.json({
       success: true,
       data: executeResult,
       message: "KRNL execution successful"
+    }, {
+      headers: corsHeaders
     });
 
     
@@ -66,7 +216,10 @@ export async function POST(request: NextRequest) {
     console.error("Error executing KRNL:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Failed to execute KRNL" },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: corsHeaders
+      }
     );
   }
 }
@@ -87,7 +240,7 @@ async function executeKrnl(token: string, senderAddress: string, sessionId: stri
   }
   
   // Use provided kernel ID or default to 1655 (can be overridden via env)
-  const kernelId = customKernelId || "1683";
+  const kernelId = customKernelId || "1686";
   
   // Create the kernel request data with the correct structure
   const kernelRequestData = {

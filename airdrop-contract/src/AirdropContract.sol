@@ -10,12 +10,17 @@ contract AirdropContract is KRNL {
     IERC20 public token;
     uint256 public airdropAmount;
     mapping(address => bool) public hasClaimed;
+
+    struct Response {
+        string message;
+    }
     
     // Events
     event AirdropClaimed(address recipient, uint256 amount);
     event TokensWithdrawn(address to, uint256 amount);
     event TokenAddressSet(address tokenAddress);
     event AirdropAmountSet(uint256 airdropAmount);
+    event testEvent(string message);
     
     // Modifiers
     modifier onlyContractOwner() {
@@ -47,17 +52,13 @@ contract AirdropContract is KRNL {
     {
         // Decode response from kernel
         KernelResponse[] memory kernelResponses = abi.decode(krnlPayload.kernelResponses, (KernelResponse[]));
-        string memory isVerified;
+        Response memory response;
         for (uint i; i < kernelResponses.length; i++) {
-            if (kernelResponses[i].kernelId == 1683) {
-                isVerified = abi.decode(kernelResponses[i].result, (string));
+            if (kernelResponses[i].kernelId == 1686) {
+                response = abi.decode(kernelResponses[i].result, (Response));
             }
         }
-        // Check if the user is verified by the kernel
-        if (keccak256(abi.encodePacked(isVerified)) != keccak256(abi.encodePacked("Verified"))) {
-            revert("Sybil Check Failed");
-        }
-
+        emit testEvent(response.message);
         _claimAirdrop(airdropAddress);
     }
     
