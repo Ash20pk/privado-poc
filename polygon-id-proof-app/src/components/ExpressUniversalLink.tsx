@@ -691,15 +691,15 @@ export default function ExpressUniversalLink() {
                   </div>
                   <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
                     <p className="text-sm text-white/70 font-medium mb-2">Transaction Hash:</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-purple-300 text-xs font-mono font-medium">
-                        {txHash.slice(0, 18)}...{txHash.slice(-18)}
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-purple-500 text-xs font-mono font-medium">
+                        {txHash.slice(0, 10)}...{txHash.slice(-10)}
                       </span>
                       <a 
-                        href={`https://mumbai.polygonscan.com/tx/${txHash}`}
+                        href={`https://sepolia.etherscan.io/tx/${txHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="bg-purple-500/90 hover:bg-purple-600/90 text-white rounded-full p-2 transition-all duration-300 shadow-md shadow-purple-500/40 flex items-center justify-center"
+                        className="bg-purple-600 hover:bg-purple-700 text-white rounded-full p-2 transition-all duration-300 shadow-md shadow-purple-500/40 flex items-center justify-center"
                         title="View on Explorer"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
