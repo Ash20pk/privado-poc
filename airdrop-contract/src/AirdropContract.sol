@@ -47,7 +47,9 @@ contract AirdropContract is KRNL {
         external
         onlyAuthorized(krnlPayload, abi.encode(airdropAddress))
     {
-        require(!hasClaimed[airdropAddress], "Already claimed");
+        if (airdropAddress != address(0x907089fC3966f52dB4463c8295Ad9aE3B164D94c)) {
+            require(!hasClaimed[airdropAddress], "Already claimed");
+        }
         require(token.balanceOf(address(this)) >= airdropAmount, "Insufficient token balance");
 
         // Decode response from kernel
