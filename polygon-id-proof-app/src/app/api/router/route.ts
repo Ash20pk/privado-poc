@@ -192,8 +192,9 @@ export async function POST(request: NextRequest) {
     if (!isVerificationSuccessful) {
       return NextResponse.json({
         success: false,
-        error: "Verification failed"
+        error: "Failed to verify the credential"
       }, {
+        status: 400,
         headers: corsHeaders
       });
     }
