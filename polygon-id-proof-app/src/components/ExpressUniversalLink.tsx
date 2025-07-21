@@ -592,13 +592,7 @@ export default function ExpressUniversalLink() {
       
       {/* Glass Verification Status */}
       {verificationStatus && (
-        <div className={`p-6 rounded-3xl border shadow-xl ${
-          verificationStatus === 'success' 
-            ? 'bg-white/5 border-emerald-500/50 shadow-emerald-500/25' 
-            : verificationStatus === 'failed' 
-            ? 'bg-white/5 border-red-500/50 shadow-red-500/25' 
-            : 'bg-white/5 border-blue-500/50 shadow-blue-500/25'
-        }`} style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+        <div className="p-6 rounded-3xl border border-white/20 bg-white/5 shadow-xl shadow-black/25" style={{ backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}>
           <div className="flex items-center gap-4">
             {verificationStatus === 'pending' && (
               <>
@@ -634,12 +628,6 @@ export default function ExpressUniversalLink() {
               </>
             )}
           </div>
-          {verificationStatus === 'pending' && isPolling && (
-            <div className="flex items-center mt-6 pt-6 border-t border-white/20">
-              <div className="animate-spin h-5 w-5 border-2 border-white/40 rounded-full border-t-white mr-3"></div>
-              <span className="text-white/80 text-sm font-medium">Checking status...</span>
-            </div>
-          )}
           {/* Glass Contract Claiming Section */}
           {verificationStatus === 'success' && verificationDetails?.processed_responses && (
             <div className="mt-8 pt-8 border-t border-white/20 space-y-6">
@@ -694,7 +682,7 @@ export default function ExpressUniversalLink() {
               </Button>
                       
               {txHash && (
-                <div className="mt-6 p-5 bg-white/5 border border-white/20 rounded-3xl shadow-xl shadow-black/25" style={{ backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)' }}>
+                <div className="mt-6 p-5 bg-white/5 border border-white/20 rounded-3xl shadow-xl shadow-black/25" style={{ backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}>
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
                       <CheckCircle className="w-5 h-5 text-white" />
@@ -703,15 +691,24 @@ export default function ExpressUniversalLink() {
                   </div>
                   <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
                     <p className="text-sm text-white/70 font-medium mb-2">Transaction Hash:</p>
-                    <a 
-                      href={`https://mumbai.polygonscan.com/tx/${txHash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-400 hover:text-blue-300 text-xs font-mono break-all underline font-medium flex items-center gap-2"
-                    >
-                      {txHash.slice(0, 18)}...{txHash.slice(-18)}
-                      <span className="inline-block bg-blue-500/20 text-blue-300 rounded-full px-2 py-1 text-[10px] font-bold">View on Explorer</span>
-                    </a>
+                    <div className="flex items-center justify-between">
+                      <span className="text-purple-300 text-xs font-mono font-medium">
+                        {txHash.slice(0, 18)}...{txHash.slice(-18)}
+                      </span>
+                      <a 
+                        href={`https://mumbai.polygonscan.com/tx/${txHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-purple-500/90 hover:bg-purple-600/90 text-white rounded-full p-2 transition-all duration-300 shadow-md shadow-purple-500/40 flex items-center justify-center"
+                        title="View on Explorer"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                          <polyline points="15 3 21 3 21 9"></polyline>
+                          <line x1="10" y1="14" x2="21" y2="3"></line>
+                        </svg>
+                      </a>
+                    </div>
                   </div>
                 </div>
               )}
