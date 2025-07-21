@@ -11,6 +11,7 @@ contract AirdropContract is KRNL {
     uint256 public airdropAmount;
     mapping(address => bool) public hasClaimed;
 
+    // Structs for kernel responses
     struct Response {
         string message;
     }
@@ -20,7 +21,6 @@ contract AirdropContract is KRNL {
     event TokensWithdrawn(address to, uint256 amount);
     event TokenAddressSet(address tokenAddress);
     event AirdropAmountSet(uint256 airdropAmount);
-    event testEvent(string message);
     
     // Modifiers
     modifier onlyContractOwner() {
@@ -28,15 +28,12 @@ contract AirdropContract is KRNL {
         _;
     }
     
-    // Constructor sets the token authority public key, owner, token address and airdrop amount
+    // Constructor sets the token authority public key
     constructor(address _tokenAuthorityPublicKey) KRNL(_tokenAuthorityPublicKey) {
         contractOwner = msg.sender;
     }
     
     function _claimAirdrop(address airdropAddress) internal {
-        require(!hasClaimed[airdropAddress], "Already claimed");
-        require(token.balanceOf(address(this)) >= airdropAmount, "Insufficient token balance");
-        
         hasClaimed[airdropAddress] = true;
         require(token.transfer(airdropAddress, airdropAmount), "Transfer failed");
         
@@ -50,6 +47,9 @@ contract AirdropContract is KRNL {
         external
         onlyAuthorized(krnlPayload, abi.encode(airdropAddress))
     {
+        require(!hasClaimed[airdropAddress], "Already claimed");
+        require(token.balanceOf(address(this)) >= airdropAmount, "Insufficient token balance");
+
         // Decode response from kernel
         KernelResponse[] memory kernelResponses = abi.decode(krnlPayload.kernelResponses, (KernelResponse[]));
         Response memory response;
@@ -58,7 +58,6 @@ contract AirdropContract is KRNL {
                 response = abi.decode(kernelResponses[i].result, (Response));
             }
         }
-        emit testEvent(response.message);
         _claimAirdrop(airdropAddress);
     }
     

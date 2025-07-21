@@ -26,14 +26,14 @@ export function DynamicProvider({
     settings={{
       environmentId,
       walletConnectors: [EthereumWalletConnectors],
-      events: {  // Changed from eventsCallbacks to events
-        onAuthSuccess: (args) => {
+      events: {
+        onAuthSuccess: (args: any) => {
           console.log('✅ Wallet connected successfully:', args);
         },
-        onLogout: (args) => {
+        onLogout: (args: any) => {
           console.log('🔌 Wallet disconnected:', args);
-        },
-      },
+        }
+      }
     }}
     >
       <WagmiProvider config={wagmiConfig}>

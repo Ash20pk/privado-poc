@@ -107,20 +107,18 @@ contract TokenAuthority is Ownable {
         );
 
         for (uint256 i = 0; i < _executions.length; i++) {
-            // if (_executions[i].kernelId == 1686) {
-            //     // Change the code below to match with the return data type of this kernel
-            //     uint256 result = abi.decode(_executions[i].result, (uint256));
-            //     if (result > 0) {
-            //         _executions[i].isValidated = true;
-            //         _executions[i].opinion = true;
-            //     } else {
-            //         _executions[i].isValidated = false;
-            //         _executions[i].opinion = false;
-            //     }
-            // }
-
-            _executions[i].isValidated = true;
-            _executions[i].opinion = true;
+            if (_executions[i].kernelId == 1686) {
+                Response memory result = abi.decode(_executions[i].result, (Response));
+                if (keccak256(abi.encodePacked(result.message)) == keccak256(abi.encodePacked("success"))) {
+                    _executions[i].isValidated = true;
+                    _executions[i].opinion = true;
+                    _executions[i].opinionDetails = "Sybil check successful";
+                } else {
+                    _executions[i].isValidated = false;
+                    _executions[i].opinion = false;
+                    _executions[i].opinionDetails = "Sybil check failed";
+                }
+            }
         }
         
         return abi.encode(_executions);

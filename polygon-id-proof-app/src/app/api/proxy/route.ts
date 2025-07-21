@@ -17,7 +17,6 @@ async function handleRequest(req: NextRequest) {
     // Check if there's an environment variable for the target URL, otherwise use the default
     const targetUrl = process.env.TARGET_API_URL || 'https://talented-top-kite.ngrok-free.app/privado/api/sign-in';
     
-    console.log(`Proxying request to: ${targetUrl}`);
     
     // Get wallet address from request body if it's a POST request
     let walletAddress = '';

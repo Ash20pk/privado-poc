@@ -1,13 +1,13 @@
 'use client';
 
-import { useAccount, useBalance, useWalletClient } from 'wagmi';
+import { useAccount, useBalance, useWalletClient, useSwitchChain } from 'wagmi';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
 import { sepolia } from '@/lib/wagmi';
 
 export function useWagmiWallet() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { data: balance } = useBalance({
     address,
@@ -15,6 +15,15 @@ export function useWagmiWallet() {
   });
   const { user } = useDynamicContext();
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
+  const { switchChain } = useSwitchChain();
+
+  // Switch to Sepolia when connected
+  useEffect(() => {
+    if (isConnected && chainId !== sepolia.id) {
+      console.log('Switching to Sepolia network...');
+      switchChain({ chainId: sepolia.id });
+    }
+  }, [isConnected, chainId, switchChain]);
 
   // Create ethers signer from wagmi wallet client
   useEffect(() => {
@@ -25,11 +34,9 @@ export function useWagmiWallet() {
       }
 
       try {
-        console.log('Creating ethers signer from wagmi wallet client...');
         const provider = new ethers.BrowserProvider(walletClient);
         const ethersSigner = await provider.getSigner();
         setSigner(ethersSigner);
-        console.log('✅ Ethers signer created successfully');
       } catch (error) {
         console.error('Error creating ethers signer:', error);
         setSigner(null);
@@ -46,11 +53,9 @@ export function useWagmiWallet() {
     }
 
     try {
-      console.log('Refreshing wallet connection...');
       const provider = new ethers.BrowserProvider(walletClient);
       const ethersSigner = await provider.getSigner();
       setSigner(ethersSigner);
-      console.log('✅ Wallet refreshed successfully');
     } catch (error) {
       console.error('Error refreshing wallet:', error);
       setSigner(null);

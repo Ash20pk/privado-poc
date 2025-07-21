@@ -200,7 +200,6 @@ export async function POST(request: NextRequest) {
     
     // The session is already updated in Supabase above, so the frontend polling will pick it up
     // No need for an additional API call since the verification-status endpoint reads from Supabase
-    console.log(`Verification completed for session ${sessionId}. Frontend polling will detect the change.`);
     
     // Return response based on verification result
     return NextResponse.json({
@@ -226,7 +225,7 @@ export async function POST(request: NextRequest) {
 
 /**
  * Execute KRNL with the provided token and sender address
- * @param token Polygon ID token
+ * @param token Privado ID token
  * @param senderAddress Wallet address (from wallet connection)
  * @param sessionId Session ID
  * @param customKernelId Optional kernel ID to use

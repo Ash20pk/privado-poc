@@ -39,17 +39,13 @@ export function useDynamicWallet() {
     }
 
     try {
-      console.log('Getting wallet client...');
       const walletClient = await primaryWallet.getWalletClient();
       
       if (walletClient) {
-        console.log('Creating provider and signer...');
         const provider = new ethers.BrowserProvider(walletClient);
         const ethersSigner = await provider.getSigner();
         setSigner(ethersSigner);
-        console.log('Signer created successfully!');
       } else {
-        console.log('No wallet client available');
         setSigner(null);
       }
     } catch (error) {
@@ -61,11 +57,9 @@ export function useDynamicWallet() {
   // Update wallet info when wallet changes
   useEffect(() => {
     if (primaryWallet && isEthereumWallet(primaryWallet)) {
-      console.log('Wallet connected, updating balance and signer...');
       updateBalance();
       updateSigner();
     } else {
-      console.log('Wallet disconnected, clearing state...');
       setBalance('0');
       setSigner(null);
     }

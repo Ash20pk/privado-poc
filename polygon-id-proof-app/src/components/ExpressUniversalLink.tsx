@@ -3,11 +3,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { QrCode, Copy, CheckCircle, Clock, Loader2, XCircle } from 'lucide-react';
+import { QrCode, Copy, CheckCircle, Clock, Loader2, XCircle, Gift, Sparkles, AlertCircle } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useDynamicWallet } from '@/hooks/useDynamicWallet';
 import { ethers } from 'ethers';
 import { abi as contractAbi, CONTRACT_ADDRESS } from '@/lib/krnlConfig';
+import { toast } from 'sonner';
 
 export default function ExpressUniversalLink() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
@@ -20,7 +21,7 @@ export default function ExpressUniversalLink() {
   const [verificationDetails, setVerificationDetails] = useState<any>(null);
   const [contractCallStatus, setContractCallStatus] = useState<'idle' | 'calling' | 'success' | 'failed'>('idle');
   const [txHash, setTxHash] = useState<string | null>(null);
-  const [airdropAddress, setAirdropAddress] = useState<string>(''); // Address to receive the airdrop
+  const [airdropAddress, setAirdropAddress] = useState<string>('');
   
   // Polling interval in milliseconds
   const POLLING_INTERVAL = 3000;
@@ -43,6 +44,13 @@ export default function ExpressUniversalLink() {
     setCopied(false);
     
     try {
+      toast.info(
+        <div className="flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span>Generating verification QR code...</span>
+        </div>
+      );
+
       // Fetch auth request from our local Next.js API proxy
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -83,11 +91,26 @@ export default function ExpressUniversalLink() {
         
         // Start polling for verification status
         startPolling(authRequest.sessionId);
+
+        toast.success(
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4" />
+            <span>QR code generated successfully! Scan with your Privado ID wallet.</span>
+          </div>
+        );
       }
       
     } catch (err) {
       console.error('Error generating QR code:', err);
-      setError(err instanceof Error ? err.message : 'Failed to generate QR code');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate QR code';
+      setError(errorMessage);
+      
+      toast.error(
+        <div className="flex items-center gap-2">
+          <AlertCircle className="w-4 h-4" />
+          <span>{errorMessage}</span>
+        </div>
+      );
     } finally {
       setIsLoading(false);
     }
@@ -131,7 +154,6 @@ export default function ExpressUniversalLink() {
       checkVerificationStatus(sessionId);
     }, POLLING_INTERVAL);
     
-    console.log(`Started polling for verification status with session ID: ${sessionId}`);
   };
   
   // Check verification status
@@ -139,10 +161,16 @@ export default function ExpressUniversalLink() {
     try {
       // Check if polling has timed out (5 minutes)
       if (pollingStartTimeRef.current && Date.now() - pollingStartTimeRef.current > POLLING_TIMEOUT) {
-        console.log('Polling timeout reached (5 minutes). Stopping polling.');
         setVerificationStatus('failed');
         stopPolling();
         setError('Verification timeout. Please try again.');
+        
+        toast.error(
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            <span>Verification timeout. Please try again.</span>
+          </div>
+        );
         return;
       }
       
@@ -156,7 +184,7 @@ export default function ExpressUniversalLink() {
       const data = await response.json();
       
       // Only update details if they changed to avoid unnecessary re-renders
-      setVerificationDetails(prevDetails => {
+      setVerificationDetails((prevDetails: any) => {
         if (JSON.stringify(prevDetails) !== JSON.stringify(data)) {
           return data;
         }
@@ -174,12 +202,26 @@ export default function ExpressUniversalLink() {
         }
         
         console.log('Verification successful! Polling stopped.');
+        
+        toast.success(
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4" />
+            <span>Verification successful! You can now claim your tokens.</span>
+          </div>
+        );
       } else if (data.verified === false) {
         // Verification explicitly failed (has been processed and failed)
         setVerificationStatus('failed');
         stopPolling();
         
         console.log('Verification failed. Polling stopped.');
+        
+        toast.error(
+          <div className="flex items-center gap-2">
+            <XCircle className="w-4 h-4" />
+            <span>Verification failed. Please try again.</span>
+          </div>
+        );
       }
       // If data.verified is null, continue polling (no verification attempt yet)
       
@@ -211,16 +253,35 @@ export default function ExpressUniversalLink() {
   // Call the contract with the verification result
   const callContract = async (sessionId: string) => {
     if (!sessionId || contractCallStatus === 'calling' || !airdropAddress) {
+      toast.error(
+        <div className="flex items-center gap-2">
+          <AlertCircle className="w-4 h-4" />
+          <span>Missing required information for contract call</span>
+        </div>
+      );
       return;
     }
     
     if (!wallet?.signer) {
-      setError('Wallet not connected or signer not available');
+      const errorMsg = 'Wallet not connected or signer not available';
+      setError(errorMsg);
       setContractCallStatus('failed');
+      toast.error(
+        <div className="flex items-center gap-2">
+          <AlertCircle className="w-4 h-4" />
+          <span>{errorMsg}</span>
+        </div>
+      );
       return;
     }
     
     setContractCallStatus('calling');
+    toast.info(
+      <div className="flex items-center gap-2">
+        <Loader2 className="w-4 h-4 animate-spin" />
+        <span>Preparing to claim tokens...</span>
+      </div>
+    );
     
     try {
       // First, get the session data with the KRNL payload
@@ -242,6 +303,13 @@ export default function ExpressUniversalLink() {
         throw new Error('Session not verified');
       }
       
+      toast.info(
+        <div className="flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span>Fetching verification data...</span>
+        </div>
+      );
+      
       // Get the execute result from session data
       const sessionResponse = await fetch(`/api/session?sessionId=${sessionId}`, {
         method: 'GET',
@@ -249,7 +317,6 @@ export default function ExpressUniversalLink() {
           'Content-Type': 'application/json'
         }
       });
-
       
       if (!sessionResponse.ok) {
         const errorData = await sessionResponse.json();
@@ -257,7 +324,6 @@ export default function ExpressUniversalLink() {
       }
       
       const sessionData = await sessionResponse.json();
-      console.log("Session data:", sessionData); 
       const executeResult = sessionData;
       
       if (!executeResult) {
@@ -268,10 +334,6 @@ export default function ExpressUniversalLink() {
       if (!CONTRACT_ADDRESS) {
         throw new Error("Contract address is required");
       }
-
-      console.log("Contract address:", CONTRACT_ADDRESS); 
-      console.log("Contract ABI:", contractAbi); 
-      console.log("Wallet signer:", wallet.signer);
       
       const contract = new ethers.Contract(CONTRACT_ADDRESS, contractAbi, wallet.signer);
       
@@ -282,224 +344,397 @@ export default function ExpressUniversalLink() {
         kernelParams: executeResult.data.kernel_params
       };
 
-      console.log("Contract payload:", krnlPayload); 
-      console.log("Airdrop address:", airdropAddress); 
-      console.log("Contract instance:", contract); 
+      
+      toast.info(
+        <div className="flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span>Submitting transaction to claim tokens...</span>
+        </div>
+      );
       
       // Call `submitRequest` on contract
       const tx = await contract.submitRequest(krnlPayload, airdropAddress);
+      
+      toast.info(
+        <div className="flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span>Transaction submitted! Waiting for confirmation...</span>
+        </div>
+      );
+      
       const receipt = await tx.wait();
       
       setTxHash(receipt.hash);
       setContractCallStatus('success');
       
+      toast.success(
+        <div className="flex items-center gap-2">
+          <Gift className="w-4 h-4" />
+          <span>Tokens claimed successfully!</span>
+        </div>
+      );
+      
     } catch (err: any) {
       console.error('Error calling contract:', err);
-      setError(err.message || 'Failed to call contract');
+      const errorMessage = err.message || 'Failed to call contract';
+      setError(errorMessage);
       setContractCallStatus('failed');
+      
+      toast.error(
+        <div className="flex items-center gap-2">
+          <XCircle className="w-4 h-4" />
+          <span>{errorMessage}</span>
+        </div>
+      );
     }
   };
 
+  // Determine the current step based on verification and contract call status
+  const getCurrentStep = () => {
+    if (!qrCodeDataUrl) return 1;
+    if (verificationStatus === 'pending') return 1;
+    if (verificationStatus === 'success' && contractCallStatus !== 'success') return 2;
+    if (verificationStatus === 'success' && contractCallStatus === 'success') return 3;
+    return 1;
+  };
+  
+  const currentStep = getCurrentStep();
+  
   return (
-    <Card className="w-full max-w-md mx-auto shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-center">Express Universal Link</CardTitle>
-        <CardDescription className="text-center">
-          Generate a link for Polygon ID verification
-        </CardDescription>
-        {wallet.isConnected ? (
-          <p className="text-green-500 text-sm text-center mt-2">
-            Wallet connected: {wallet.account?.slice(0, 6)}...{wallet.account?.slice(-4)}
-          </p>
-        ) : (
-          <p className="text-yellow-500 text-sm text-center mt-2">
-            No wallet connected. Connect a wallet for better experience.
-          </p>
-        )}
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        <Button
-          onClick={handleGenerateLink}
-          disabled={isLoading}
-          className="w-full"
-        >
-          {isLoading ? (
-            <>
-              <Clock className="w-4 h-4 mr-2 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            <>
-              <QrCode className="w-4 h-4 mr-2" />
-              Generate Link
-            </>
-          )}
-        </Button>
-        
-        {error && (
-          <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm">
-            Error: {error}
+    <div className="w-full space-y-8">
+      {/* Glass Progress Indicator */}
+      <div className="flex items-center justify-center">
+        <div className="flex items-center space-x-3">
+          {/* Step 1: Generate QR & Verify */}
+          <div className={`w-10 h-10 ${currentStep >= 1 ? 'bg-gradient-to-r from-blue-500 to-purple-500 shadow-xl shadow-blue-500/50' : 'bg-white/5 border border-white/20'} rounded-2xl flex items-center justify-center transition-all duration-500`} style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+            {currentStep > 1 ? (
+              <CheckCircle className="w-5 h-5 text-white" />
+            ) : (
+              <span className={`text-sm font-bold ${currentStep >= 1 ? 'text-white' : 'text-white/60'}`}>1</span>
+            )}
           </div>
+          <div className={`w-12 h-1 ${currentStep >= 2 ? 'bg-gradient-to-r from-blue-500/50 to-purple-500/50' : 'bg-white/20'} rounded-full transition-all duration-500`}></div>
+          
+          {/* Step 2: Verification Success */}
+          <div className={`w-10 h-10 ${currentStep >= 2 ? 'bg-gradient-to-r from-blue-500 to-purple-500 shadow-xl shadow-blue-500/50' : 'bg-white/5 border border-white/20'} rounded-2xl flex items-center justify-center transition-all duration-500`} style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+            {currentStep > 2 ? (
+              <CheckCircle className="w-5 h-5 text-white" />
+            ) : (
+              <span className={`text-sm font-bold ${currentStep >= 2 ? 'text-white' : 'text-white/60'}`}>2</span>
+            )}
+          </div>
+          <div className={`w-12 h-1 ${currentStep >= 3 ? 'bg-gradient-to-r from-blue-500/50 to-purple-500/50' : 'bg-white/20'} rounded-full transition-all duration-500`}></div>
+          
+          {/* Step 3: Claim Tokens */}
+          <div className={`w-10 h-10 ${currentStep >= 3 ? 'bg-gradient-to-r from-blue-500 to-purple-500 shadow-xl shadow-blue-500/50' : 'bg-white/5 border border-white/20'} rounded-2xl flex items-center justify-center transition-all duration-500`} style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+            {currentStep === 3 && contractCallStatus === 'success' ? (
+              <Gift className="w-5 h-5 text-white" />
+            ) : (
+              <span className={`text-sm font-bold ${currentStep >= 3 ? 'text-white' : 'text-white/60'}`}>3</span>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Step Labels */}
+      <div className="flex items-center justify-center text-xs text-white/70">
+        <div className="flex items-center space-x-3 px-1">
+          <div className="w-10 text-center">
+            <span className={`${currentStep === 1 ? 'text-white font-bold' : ''}`}>Verify</span>
+          </div>
+          <div className="w-12"></div>
+          <div className="w-10 text-center">
+            <span className={`${currentStep === 2 ? 'text-white font-bold' : ''}`}>Success</span>
+          </div>
+          <div className="w-12"></div>
+          <div className="w-10 text-center">
+            <span className={`${currentStep === 3 ? 'text-white font-bold' : ''}`}>Claim</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Glass Status Display */}
+      {wallet.isConnected && (
+        <div className="bg-white/5 border border-white/20 rounded-3xl p-5 shadow-xl shadow-black/25" style={{ backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)' }}>
+          <div className="flex items-center gap-4">
+            <div className="w-4 h-4 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"></div>
+            <span className="text-white text-sm font-semibold">
+              {wallet.account?.slice(0, 6)}...{wallet.account?.slice(-4)} connected
+            </span>
+          </div>
+        </div>
+      )}
+      
+      {/* Glass Generate QR Button */}
+      <Button
+        onClick={handleGenerateLink}
+        disabled={isLoading}
+        className="w-full bg-purple-500/90 hover:bg-purple-600/90 text-white font-bold py-5 text-lg rounded-3xl transition-all duration-300 shadow-xl shadow-purple-500/40 flex items-center justify-center gap-3 border border-white/20 disabled:opacity-50 disabled:hover:bg-purple-500/90"
+        style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="w-6 h-6 animate-spin" />
+            <span>Generating QR Code...</span>
+          </>
+        ) : (
+          <>
+            <QrCode className="w-6 h-6" />
+            <span>Generate Verification QR</span>
+          </>
         )}
+      </Button>
         
-        {qrCodeDataUrl && (
-          <div className="space-y-4">
-            <div className="bg-white p-4 rounded-lg shadow flex justify-center">
-              <img 
-                src={qrCodeDataUrl} 
-                alt="Verification QR Code"
-                width={250}
-                height={250}
-              />
+      {/* Glass Error Display */}
+      {error && (
+        <div className="p-6 bg-white/5 border border-red-500/50 text-red-300 rounded-3xl shadow-xl shadow-red-500/25" style={{ backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-red-500 rounded-2xl flex items-center justify-center">
+              <XCircle className="w-5 h-5 text-white" />
             </div>
+            <span className="font-bold">Error:</span>
+          </div>
+          <p className="mt-3 font-medium">{error}</p>
+        </div>
+      )}
+        
+      {/* Glass QR Code Section */}
+      {qrCodeDataUrl && (
+        <div className="space-y-8">
+          {/* Glass QR Code Display */}
+          <div className="bg-white/5 border border-white/20 p-8 rounded-3xl flex justify-center shadow-2xl shadow-black/25" style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+            <img 
+              src={qrCodeDataUrl} 
+              alt="Verification QR Code"
+              width={220}
+              height={220}
+              className="rounded-2xl"
+            />
+          </div>
+          
+          {/* Glass Action Buttons */}
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              onClick={copyToClipboard}
+              variant="outline"
+              size="sm"
+              className="bg-emerald-500/90 hover:bg-emerald-600/90 text-white font-medium py-3 rounded-2xl transition-all duration-300 shadow-xl shadow-emerald-500/40 flex items-center justify-center gap-2 border border-white/20"
+              style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+            >
+              {copied ? (
+                <>
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-5 h-5" />
+                  <span>Copy Link</span>
+                </>
+              )}
+            </Button>
             
-            <div className="flex justify-between">
+            <Button
+              onClick={openInWallet}
+              variant="outline"
+              size="sm"
+              className="bg-blue-500/90 hover:bg-blue-600/90 text-white font-medium py-3 rounded-2xl transition-all duration-300 shadow-xl shadow-blue-500/40 flex items-center justify-center gap-2 border border-white/20"
+              style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+            >
+              <QrCode className="w-5 h-5" />
+              <span>Open in Wallet</span>
+            </Button>
+          </div>
+            
+          {/* Glass Instructions */}
+          <div className="p-8 bg-white/5 border border-white/20 rounded-3xl shadow-xl shadow-black/25" style={{ backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)' }}>
+            <p className="font-bold mb-6 flex items-center gap-3 text-white">
+              <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-lg">Instructions:</span>
+            </p>
+            {verificationStatus === null && (
+              <ol className="list-decimal list-inside space-y-3 ml-10 text-white/80 font-medium">
+                <li className="font-bold text-white">Scan QR code with your Privado ID wallet</li>
+                <li>Complete the verification process in your wallet</li>
+                <li>After verification, return here to claim your tokens</li>
+              </ol>
+            )}
+            {verificationStatus === 'pending' && (
+              <ol className="list-decimal list-inside space-y-3 ml-10 text-white/80 font-medium">
+                <li className="font-bold text-white">Open the QR code in your Privado ID wallet</li>
+                <li className="font-bold text-white">Complete the verification process</li>
+                <li>Wait for verification confirmation</li>
+                <li>Once verified, you'll be able to claim your tokens</li>
+              </ol>
+            )}
+            {verificationStatus === 'success' && contractCallStatus !== 'success' && (
+              <ol className="list-decimal list-inside space-y-3 ml-10 text-white/80 font-medium">
+                <li className="line-through opacity-50">Scan QR code with your Privado ID wallet</li>
+                <li className="line-through opacity-50">Complete the verification process</li>
+                <li className="font-bold text-white">Confirm your wallet address below</li>
+                <li className="font-bold text-white">Click the "Claim 100 PROJECT X Tokens" button</li>
+              </ol>
+            )}
+            {verificationStatus === 'success' && contractCallStatus === 'success' && (
+              <div className="ml-10 text-white/80 font-medium">
+                <p className="text-emerald-400 font-bold flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>All steps completed! Your tokens have been claimed.</span>
+                </p>
+                <p className="mt-3">You can view your transaction on the block explorer using the link below.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* Glass Verification Status */}
+      {verificationStatus && (
+        <div className={`p-6 rounded-3xl border shadow-xl ${
+          verificationStatus === 'success' 
+            ? 'bg-white/5 border-emerald-500/50 shadow-emerald-500/25' 
+            : verificationStatus === 'failed' 
+            ? 'bg-white/5 border-red-500/50 shadow-red-500/25' 
+            : 'bg-white/5 border-blue-500/50 shadow-blue-500/25'
+        }`} style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+          <div className="flex items-center gap-4">
+            {verificationStatus === 'pending' && (
+              <>
+                <div className="w-12 h-12 bg-blue-500 rounded-3xl flex items-center justify-center shadow-xl shadow-blue-500/50">
+                  <Loader2 className="h-6 w-6 text-white animate-spin" />
+                </div>
+                <div>
+                  <p className="font-bold text-white text-lg">Verification in Progress</p>
+                  <p className="text-sm text-white/70 font-medium">Scan the QR code to continue...</p>
+                </div>
+              </>
+            )}
+            {verificationStatus === 'success' && (
+              <>
+                <div className="w-12 h-12 bg-emerald-500 rounded-3xl flex items-center justify-center shadow-xl shadow-emerald-500/50">
+                  <CheckCircle className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="font-bold text-white text-lg">Verification Successful! 🎉</p>
+                  <p className="text-sm text-white/70 font-medium">Ready to claim your tokens</p>
+                </div>
+              </>
+            )}
+            {verificationStatus === 'failed' && (
+              <>
+                <div className="w-12 h-12 bg-red-500 rounded-3xl flex items-center justify-center shadow-xl shadow-red-500/50">
+                  <XCircle className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="font-bold text-white text-lg">Verification Failed</p>
+                  <p className="text-sm text-white/70 font-medium">Please try again</p>
+                </div>
+              </>
+            )}
+          </div>
+          {verificationStatus === 'pending' && isPolling && (
+            <div className="flex items-center mt-6 pt-6 border-t border-white/20">
+              <div className="animate-spin h-5 w-5 border-2 border-white/40 rounded-full border-t-white mr-3"></div>
+              <span className="text-white/80 text-sm font-medium">Checking status...</span>
+            </div>
+          )}
+          {/* Glass Contract Claiming Section */}
+          {verificationStatus === 'success' && verificationDetails?.processed_responses && (
+            <div className="mt-8 pt-8 border-t border-white/20 space-y-6">
+              <div className="text-sm text-white bg-white/5 border border-white/20 rounded-2xl p-4" style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+                <p className="font-semibold">✓ Verified at {new Date(verificationDetails.timestamp).toLocaleString()}</p>
+              </div>
+              
+              <div className="space-y-4">
+                <label className="text-sm text-white font-bold">Claim Address:</label>
+                <input
+                  type="text"
+                  className="w-full text-sm bg-white/5 border border-white/20 rounded-2xl p-4 text-white font-mono placeholder-white/50 focus:border-white/40 focus:outline-none shadow-lg"
+                  style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+                  value={airdropAddress}
+                  onChange={(e) => setAirdropAddress(e.target.value)}
+                  placeholder="0x... (wallet address)"
+                />
+              </div>
+              
               <Button
-                onClick={copyToClipboard}
-                variant="outline"
-                size="sm"
+                onClick={() => callContract(localStorage.getItem('sessionId') || '')}
+                disabled={contractCallStatus === 'calling' || !airdropAddress}
+                className={`w-full font-bold py-5 text-lg rounded-3xl transition-all duration-300 flex items-center justify-center gap-3 border border-white/20 disabled:opacity-50 ${contractCallStatus === 'success' 
+                  ? 'bg-emerald-500/90 hover:bg-emerald-600/90 text-white shadow-xl shadow-emerald-500/40' 
+                  : contractCallStatus === 'failed'
+                  ? 'bg-red-500/90 hover:bg-red-600/90 text-white shadow-xl shadow-red-500/40'
+                  : 'bg-emerald-500/90 hover:bg-emerald-600/90 text-white shadow-xl shadow-emerald-500/40'
+                }`}
+                style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
               >
-                {copied ? (
+                {contractCallStatus === 'calling' ? (
                   <>
-                    <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
-                    Copied!
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                    <span>Claiming Tokens...</span>
+                  </>
+                ) : contractCallStatus === 'success' ? (
+                  <>
+                    <Gift className="w-6 h-6" />
+                    <span>100 PROJECT X Claimed! 🎉</span>
+                  </>
+                ) : contractCallStatus === 'failed' ? (
+                  <>
+                    <XCircle className="w-6 h-6" />
+                    <span>Claim Failed - Try Again</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Link
+                    <Gift className="w-6 h-6" />
+                    <span>Claim 100 PROJECT X Tokens</span>
                   </>
                 )}
               </Button>
-              
-              <Button
-                onClick={openInWallet}
-                variant="outline"
-                size="sm"
-              >
-                Open in Wallet
-              </Button>
-            </div>
-            
-            <div className="p-3 bg-blue-50 text-blue-700 rounded-md text-sm">
-              <p className="font-medium mb-1">Instructions:</p>
-              <ol className="list-decimal list-inside space-y-1">
-                <li>Scan this QR code with your Polygon ID wallet</li>
-                <li>Follow the prompts to provide proof</li>
-                <li>The verification will be processed by the server</li>
-              </ol>
-            </div>
-            
-            {/* Verification Status */}
-            {verificationStatus && (
-              <div className={`p-4 rounded-lg ${verificationStatus === 'success' ? 'bg-green-50' : verificationStatus === 'failed' ? 'bg-red-50' : 'bg-blue-50'}`}>
-                <div className="flex items-center">
-                  {verificationStatus === 'pending' && (
-                    <>
-                      <Loader2 className="h-5 w-5 text-blue-500 animate-spin mr-2" />
-                      <p className="text-blue-700">Waiting for verification... Scan the QR code with your Polygon ID wallet.</p>
-                    </>
-                  )}
-                  {verificationStatus === 'success' && (
-                    <>
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                      <p className="text-green-700">Verification successful!</p>
-                    </>
-                  )}
-                  {verificationStatus === 'failed' && (
-                    <>
-                      <XCircle className="h-5 w-5 text-red-500 mr-2" />
-                      <p className="text-red-700">Verification failed.</p>
-                    </>
-                  )}
+                      
+              {txHash && (
+                <div className="mt-6 p-5 bg-white/5 border border-white/20 rounded-3xl shadow-xl shadow-black/25" style={{ backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)' }}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                      <CheckCircle className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-white font-bold">Transaction Successful!</span>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                    <p className="text-sm text-white/70 font-medium mb-2">Transaction Hash:</p>
+                    <a 
+                      href={`https://mumbai.polygonscan.com/tx/${txHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 text-xs font-mono break-all underline font-medium flex items-center gap-2"
+                    >
+                      {txHash.slice(0, 18)}...{txHash.slice(-18)}
+                      <span className="inline-block bg-blue-500/20 text-blue-300 rounded-full px-2 py-1 text-[10px] font-bold">View on Explorer</span>
+                    </a>
+                  </div>
                 </div>
-                {verificationStatus === 'pending' && isPolling && (
-                  <div className="flex items-center mt-1">
-                    <div className="animate-spin h-4 w-4 border-2 border-yellow-500 rounded-full border-t-transparent mr-2"></div>
-                    <span>Checking status...</span>
-                  </div>
-                )}
-                {/* Show verification details when available */}
-                {verificationStatus === 'success' && verificationDetails?.processed_responses && (
-                  <div className="mt-2 border-t border-green-200 pt-2">
-                    <p className="font-medium mb-1">Verification Details:</p>
-                    <div className="text-xs">
-                      <p>Timestamp: {new Date(verificationDetails.timestamp).toLocaleString()}</p>
-                      {verificationDetails.processed_responses.map((response: any, index: number) => (
-                        <div key={index} className="mt-1 border-l-2 border-green-300 pl-2">
-                          <p>Kernel ID: {response.kernelId}</p>
-                          <p>Result: {response.result || 'No result'}</p>
-                          {response.error && <p className="text-red-600">Error: {response.error}</p>}
-                        </div>
-                      ))}
-                    </div>
-                    
-                    {/* Contract call section */}
-                    <div className="mt-3 pt-2 border-t border-green-200">
-                      <p className="font-medium mb-1">Claim Airdrop:</p>
-                      <div className="flex flex-col space-y-2 mb-2">
-                        <label className="text-xs">Airdrop Address:</label>
-                        <input
-                          type="text"
-                          className="text-xs border rounded p-1 w-full font-mono"
-                          value={airdropAddress}
-                          onChange={(e) => setAirdropAddress(e.target.value)}
-                          placeholder="0x..."
-                        />
-                      </div>
-                      
-                      <Button
-                        onClick={() => callContract(localStorage.getItem('sessionId') || '')}
-                        disabled={contractCallStatus === 'calling'}
-                        size="sm"
-                        className="w-full"
-                      >
-                        {contractCallStatus === 'calling' ? (
-                          <>
-                            <Clock className="w-3 h-3 mr-1 animate-spin" />
-                            Calling Contract...
-                          </>
-                        ) : contractCallStatus === 'success' ? (
-                          <>✅ Contract Called Successfully</>
-                        ) : contractCallStatus === 'failed' ? (
-                          <>❌ Contract Call Failed</>
-                        ) : (
-                          <>Call Contract</>
-                        )}
-                      </Button>
-                      
-                      {txHash && (
-                        <div className="mt-2 text-xs">
-                          <p>Transaction Hash:</p>
-                          <a 
-                            href={`https://mumbai.polygonscan.com/tx/${txHash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 break-all"
-                          >
-                            {txHash}
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                
-                {verificationStatus === 'failed' && verificationDetails?.message && (
-                  <div className="mt-2 text-xs">
-                    <p>Reason: {verificationDetails.message}</p>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            <div className="text-xs text-gray-500 text-center">
-              Using Express API at http://localhost:8080
+              )}
             </div>
+          )}
+        </div>
+      )}
+      
+      {/* Glass Failed Status Details */}
+      {verificationStatus === 'failed' && verificationDetails?.message && (
+        <div className="p-5 bg-white/5 border border-red-500/50 rounded-3xl shadow-xl shadow-red-500/25" style={{ backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)' }}>
+          <p className="text-red-300 text-sm font-semibold">Reason: {verificationDetails.message}</p>
+        </div>
+      )}
+      
+      {/* Glass API Info */}
+      {qrCodeDataUrl && (
+        <div className="text-center">
+          <div className="bg-white/5 border border-white/20 rounded-2xl px-4 py-2 inline-block shadow-lg" style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+            <p className="text-xs text-white/70 font-semibold">Secured by Privado ID</p>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+    </div>
   );
 }
