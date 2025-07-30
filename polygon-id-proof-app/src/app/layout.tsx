@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Project X - Sybil-Resistant Airdrops",
-  description: "Participate in Sybil-resistant airdrops using Privado ID zero-knowledge proofs",
+  title: "Project X - Powered by Billions Network",
+  description: "Participate in sybil-resistant airdrops using Privado ID zero-knowledge proofs. Built on Billions Network.",
 };
 
 export default function RootLayout({

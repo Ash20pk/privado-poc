@@ -402,75 +402,74 @@ export default function ExpressUniversalLink() {
   
   return (
     <div className="w-full space-y-8">
-      {/* Glass Progress Indicator */}
+      {/* Billions Progress Indicator */}
       <div className="flex items-center justify-center">
         <div className="flex items-center space-x-3">
           {/* Step 1: Generate QR & Verify */}
-          <div className={`w-10 h-10 ${currentStep >= 1 ? 'bg-gradient-to-r from-blue-500 to-purple-500 shadow-xl shadow-blue-500/50' : 'bg-white/5 border border-white/20'} rounded-2xl flex items-center justify-center transition-all duration-500`} style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+          <div className={`w-10 h-10 ${currentStep >= 1 ? 'billions-bg-primary shadow-lg' : 'bg-gray-100 border border-gray-200'} rounded-2xl flex items-center justify-center transition-all duration-500`}>
             {currentStep > 1 ? (
               <CheckCircle className="w-5 h-5 text-white" />
             ) : (
-              <span className={`text-sm font-bold ${currentStep >= 1 ? 'text-white' : 'text-white/60'}`}>1</span>
+              <span style={{ color: currentStep >= 1 ? 'white' : 'hsl(var(--billions-navy))' }} className="text-sm font-bold">1</span>
             )}
           </div>
-          <div className={`w-12 h-1 ${currentStep >= 2 ? 'bg-gradient-to-r from-blue-500/50 to-purple-500/50' : 'bg-white/20'} rounded-full transition-all duration-500`}></div>
+          <div className={`w-12 h-1 ${currentStep >= 2 ? 'billions-bg-secondary' : 'bg-gray-200'} rounded-full transition-all duration-500`}></div>
           
           {/* Step 2: Verification Success */}
-          <div className={`w-10 h-10 ${currentStep >= 2 ? 'bg-gradient-to-r from-blue-500 to-purple-500 shadow-xl shadow-blue-500/50' : 'bg-white/5 border border-white/20'} rounded-2xl flex items-center justify-center transition-all duration-500`} style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+          <div className={`w-10 h-10 ${currentStep >= 2 ? 'billions-bg-primary shadow-lg' : 'bg-gray-100 border border-gray-200'} rounded-2xl flex items-center justify-center transition-all duration-500`}>
             {currentStep > 2 ? (
               <CheckCircle className="w-5 h-5 text-white" />
             ) : (
-              <span className={`text-sm font-bold ${currentStep >= 2 ? 'text-white' : 'text-white/60'}`}>2</span>
+              <span style={{ color: currentStep >= 2 ? 'white' : 'hsl(var(--billions-navy))' }} className="text-sm font-bold">2</span>
             )}
           </div>
-          <div className={`w-12 h-1 ${currentStep >= 3 ? 'bg-gradient-to-r from-blue-500/50 to-purple-500/50' : 'bg-white/20'} rounded-full transition-all duration-500`}></div>
+          <div className={`w-12 h-1 ${currentStep >= 3 ? 'billions-bg-secondary' : 'bg-gray-200'} rounded-full transition-all duration-500`}></div>
           
           {/* Step 3: Claim Tokens */}
-          <div className={`w-10 h-10 ${currentStep >= 3 ? 'bg-gradient-to-r from-blue-500 to-purple-500 shadow-xl shadow-blue-500/50' : 'bg-white/5 border border-white/20'} rounded-2xl flex items-center justify-center transition-all duration-500`} style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+          <div className={`w-10 h-10 ${currentStep >= 3 ? 'billions-bg-primary shadow-lg' : 'bg-gray-100 border border-gray-200'} rounded-2xl flex items-center justify-center transition-all duration-500`}>
             {currentStep === 3 && contractCallStatus === 'success' ? (
               <Gift className="w-5 h-5 text-white" />
             ) : (
-              <span className={`text-sm font-bold ${currentStep >= 3 ? 'text-white' : 'text-white/60'}`}>3</span>
+              <span style={{ color: currentStep >= 3 ? 'white' : 'hsl(var(--billions-navy))' }} className="text-sm font-bold">3</span>
             )}
           </div>
         </div>
       </div>
       
       {/* Step Labels */}
-      <div className="flex items-center justify-center text-xs text-white/70">
+      <div className="flex items-center justify-center text-xs text-gray-600">
         <div className="flex items-center space-x-3 px-1">
           <div className="w-10 text-center">
-            <span className={`${currentStep === 1 ? 'text-white font-bold' : ''}`}>Verify</span>
+            <span className={`${currentStep === 1 ? 'billions-text-primary font-bold' : ''}`}>Verify</span>
           </div>
           <div className="w-12"></div>
           <div className="w-10 text-center">
-            <span className={`${currentStep === 2 ? 'text-white font-bold' : ''}`}>Success</span>
+            <span className={`${currentStep === 2 ? 'billions-text-primary font-bold' : ''}`}>Success</span>
           </div>
           <div className="w-12"></div>
           <div className="w-10 text-center">
-            <span className={`${currentStep === 3 ? 'text-white font-bold' : ''}`}>Claim</span>
+            <span className={`${currentStep === 3 ? 'billions-text-primary font-bold' : ''}`}>Claim</span>
           </div>
         </div>
       </div>
 
-      {/* Glass Status Display */}
+      {/* Clean Status Display */}
       {wallet.isConnected && (
-        <div className="bg-white/5 border border-white/20 rounded-3xl p-5 shadow-xl shadow-black/25" style={{ backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)' }}>
+        <div className="bg-white border border-gray-200 rounded-3xl p-5 shadow-lg">
           <div className="flex items-center gap-4">
-            <div className="w-4 h-4 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"></div>
-            <span className="text-white text-sm font-semibold">
+            <div className="w-4 h-4 billions-bg-secondary rounded-full animate-pulse shadow-sm"></div>
+            <span className="billions-text-primary text-sm font-semibold">
               {wallet.account?.slice(0, 6)}...{wallet.account?.slice(-4)} connected
             </span>
           </div>
         </div>
       )}
       
-      {/* Glass Generate QR Button */}
+      {/* Billions Generate QR Button */}
       <Button
         onClick={handleGenerateLink}
         disabled={isLoading}
-        className="w-full bg-purple-500/90 hover:bg-purple-600/90 text-white font-bold py-5 text-lg rounded-3xl transition-all duration-300 shadow-xl shadow-purple-500/40 flex items-center justify-center gap-3 border border-white/20 disabled:opacity-50 disabled:hover:bg-purple-500/90"
-        style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+        className="w-full billions-button font-bold py-5 text-lg rounded-3xl transition-all duration-300 shadow-xl flex items-center justify-center gap-3 disabled:opacity-50"
       >
         {isLoading ? (
           <>

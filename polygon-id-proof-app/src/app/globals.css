@@ -1,53 +1,62 @@
 @import "tailwindcss";
 
 :root {
-  --color-background: 0 0% 100%;
-  --color-foreground: 0 0% 0%;
-  --color-card: 0 0% 100%;
-  --color-card-foreground: 0 0% 0%;
-  --color-popover: 0 0% 100%;
-  --color-popover-foreground: 0 0% 0%;
-  --color-primary: 0 0% 0%;
-  --color-primary-foreground: 0 0% 100%;
-  --color-secondary: 0 0% 96%;
-  --color-secondary-foreground: 0 0% 9%;
-  --color-muted: 0 0% 96%;
-  --color-muted-foreground: 0 0% 45%;
-  --color-accent: 0 0% 96%;
-  --color-accent-foreground: 0 0% 9%;
-  --color-destructive: 0 84.2% 60.2%;
-  --color-destructive-foreground: 0 0% 100%;
-  --color-border: 0 0% 91%;
-  --color-input: 0 0% 91%;
-  --color-ring: 0 0% 0%;
-  --radius: 0.5rem;
-
-  /* Black and white theme variables */
-  --color-black: 0 0% 0%;
-  --color-white: 0 0% 100%;
-  --color-gray-50: 0 0% 98%;
-  --color-gray-100: 0 0% 96%;
-  --color-gray-200: 0 0% 90%;
-  --color-gray-300: 0 0% 83%;
-  --color-gray-400: 0 0% 64%;
-  --color-gray-500: 0 0% 45%;
-  --color-gray-600: 0 0% 32%;
-  --color-gray-700: 0 0% 23%;
-  --color-gray-800: 0 0% 14%;
-  --color-gray-900: 0 0% 9%;
+  /* Billions Brand Colors */
+  --billions-navy: 220 45% 25%;        /* Deep navy blue - primary */
+  --billions-skyline: 195 100% 70%;    /* Bright cyan - secondary */
+  --billions-grey-700: 210 15% 45%;    /* Grey 700 */
+  --billions-grey-500: 210 15% 65%;    /* Grey 500 */
+  --billions-white: 0 0% 100%;
+  --billions-black: 0 0% 0%;
   
-  --default-transition-duration: 150ms;
+  /* Updated color system with Billions palette */
+  --color-background: var(--billions-white);
+  --color-foreground: var(--billions-navy);
+  --color-card: var(--billions-white);
+  --color-card-foreground: var(--billions-navy);
+  --color-popover: var(--billions-white);
+  --color-popover-foreground: var(--billions-navy);
+  --color-primary: var(--billions-navy);
+  --color-primary-foreground: var(--billions-white);
+  --color-secondary: var(--billions-skyline);
+  --color-secondary-foreground: var(--billions-navy);
+  --color-muted: 210 15% 96%;
+  --color-muted-foreground: var(--billions-grey-700);
+  --color-accent: var(--billions-skyline);
+  --color-accent-foreground: var(--billions-navy);
+  --color-destructive: 0 84.2% 60.2%;
+  --color-destructive-foreground: var(--billions-white);
+  --color-border: 210 15% 91%;
+  --color-input: 210 15% 91%;
+  --color-ring: var(--billions-skyline);
+  --radius: 0.75rem;
+
+  /* Legacy color variables for compatibility */
+  --color-black: var(--billions-black);
+  --color-white: var(--billions-white);
+  --color-gray-50: 210 15% 98%;
+  --color-gray-100: 210 15% 96%;
+  --color-gray-200: 210 15% 90%;
+  --color-gray-300: 210 15% 83%;
+  --color-gray-400: 210 15% 64%;
+  --color-gray-500: var(--billions-grey-500);
+  --color-gray-600: 210 15% 32%;
+  --color-gray-700: var(--billions-grey-700);
+  --color-gray-800: 210 15% 14%;
+  --color-gray-900: var(--billions-navy);
+  
+  --default-transition-duration: 200ms;
   --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  --default-font-family: var(--font-sans);
+  --default-font-family: 'Mattone', var(--font-sans);
   --default-font-feature-settings: "rlig" 1, "calt" 1;
 }
 
 .dark {
-  --color-background: 0 0% 0%;
-  --color-foreground: 0 0% 100%;
-  --color-card: 0 0% 0%;
-  --color-card-foreground: 0 0% 100%;
-  --color-popover: 0 0% 0%;
+  --color-background: var(--billions-navy);
+  --color-foreground: var(--billions-white);
+  --color-card: 220 45% 20%;
+  --color-card-foreground: var(--billions-white);
+  --color-popover: var(--billions-navy);
   --color-popover-foreground: 0 0% 100%;
   --color-primary: 0 0% 100%;
   --color-primary-foreground: 0 0% 0%;
@@ -373,7 +382,75 @@ html {
   opacity: 0.03;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   pointer-events: none;
-  z-index: 0;
+}
+
+/* Billions Brand Specific Styles */
+.billions-bg-primary {
+  background-color: var(--billions-primary);
+}
+
+.billions-bg-secondary {
+  background-color: var(--billions-secondary);
+}
+
+.billions-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.billions-glass-dark {
+  background: rgba(43, 58, 103, 0.2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(106, 213, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(43, 58, 103, 0.3);
+}
+
+.billions-button {
+  background: hsl(var(--billions-navy));
+  transition: all 0.3s ease;
+  color: hsl(var(--billions-white));
+}
+
+.billions-button:hover {
+  background: hsl(var(--billions-navy)/90%);
+  color: hsl(var(--billions-white));
+}
+
+.billions-accent {
+  color: hsl(var(--billions-skyline));
+}
+
+.billions-text-primary {
+  color: hsl(var(--billions-navy));
+}
+
+.billions-bg-primary {
+  background-color: hsl(var(--billions-navy));
+}
+
+.billions-bg-secondary {
+  background-color: hsl(var(--billions-skyline));
+}
+
+.billions-border {
+  border-color: hsl(var(--billions-skyline));
+}
+
+@keyframes billions-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(106, 213, 255, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(106, 213, 255, 0);
+  }
+}
+
+.billions-pulse {
+  animation: billions-pulse 2s infinite;
 }
 
 .border-gradient {
