@@ -517,7 +517,7 @@ export default function ExpressUniversalLink() {
               onClick={copyToClipboard}
               variant="outline"
               size="sm"
-              className="bg-emerald-500/90 hover:bg-emerald-600/90 text-white font-medium py-3 rounded-2xl transition-all duration-300 shadow-xl shadow-emerald-500/40 flex items-center justify-center gap-2 border border-white/20"
+              className="billions-button text-white font-medium py-3 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2"
               style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
             >
               {copied ? (
@@ -537,7 +537,7 @@ export default function ExpressUniversalLink() {
               onClick={openInWallet}
               variant="outline"
               size="sm"
-              className="bg-blue-500/90 hover:bg-blue-600/90 text-white font-medium py-3 rounded-2xl transition-all duration-300 shadow-xl shadow-blue-500/40 flex items-center justify-center gap-2 border border-white/20"
+              className="billions-button text-white font-medium py-3 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2"
               style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
             >
               <QrCode className="w-5 h-5" />
@@ -548,20 +548,17 @@ export default function ExpressUniversalLink() {
           {/* Glass Instructions */}
           <div className="p-8 bg-white/5 border border-white/20 rounded-3xl shadow-xl shadow-black/25" style={{ backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)' }}>
             <p className="font-bold mb-6 flex items-center gap-3 text-white">
-              <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
               <span className="text-lg">Instructions:</span>
             </p>
             {verificationStatus === null && (
-              <ol className="list-decimal list-inside space-y-3 ml-10 text-white/80 font-medium">
+              <ol className="list-decimal list-inside space-y-3 text-white/80 font-medium">
                 <li className="font-bold text-white">Scan QR code with your Privado ID wallet</li>
                 <li>Complete the verification process in your wallet</li>
                 <li>After verification, return here to claim your tokens</li>
               </ol>
             )}
             {verificationStatus === 'pending' && (
-              <ol className="list-decimal list-inside space-y-3 ml-10 text-white/80 font-medium">
+              <ol className="list-decimal list-inside space-y-3 text-white/80 font-medium">
                 <li className="font-bold text-white">Open the QR code in your Privado ID wallet</li>
                 <li className="font-bold text-white">Complete the verification process</li>
                 <li>Wait for verification confirmation</li>
@@ -569,7 +566,7 @@ export default function ExpressUniversalLink() {
               </ol>
             )}
             {verificationStatus === 'success' && contractCallStatus !== 'success' && (
-              <ol className="list-decimal list-inside space-y-3 ml-10 text-white/80 font-medium">
+              <ol className="list-decimal list-inside space-y-3 text-white/80 font-medium">
                 <li className="line-through opacity-50">Scan QR code with your Privado ID wallet</li>
                 <li className="line-through opacity-50">Complete the verification process</li>
                 <li className="font-bold text-white">Confirm your wallet address below</li>
@@ -577,7 +574,7 @@ export default function ExpressUniversalLink() {
               </ol>
             )}
             {verificationStatus === 'success' && contractCallStatus === 'success' && (
-              <div className="ml-10 text-white/80 font-medium">
+              <div className="text-white/80 font-medium">
                 <p className="text-emerald-400 font-bold flex items-center gap-2">
                   <CheckCircle className="w-5 h-5" />
                   <span>All steps completed! Your tokens have been claimed.</span>
