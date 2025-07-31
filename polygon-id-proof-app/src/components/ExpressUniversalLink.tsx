@@ -724,7 +724,7 @@ export default function ExpressUniversalLink() {
       {qrCodeDataUrl && (
         <div className="text-center">
           <div className="bg-white/5 border border-white/20 rounded-2xl px-4 py-2 inline-block shadow-lg" style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
-            <p className="text-xs text-white/70 font-semibold">Secured by Privado ID</p>
+            <p className="text-xs text-white/70 font-semibold">Secured by Billions Network</p>
           </div>
         </div>
       )}
