@@ -2,20 +2,22 @@
 
 :root {
   /* Billions Brand Colors */
-  --billions-navy: #0046ff;        /* Deep navy blue - primary */
-  --billions-skyline: 195 100% 70%;    /* Bright cyan - secondary */
+  --billions-navy: 224 100% 50%;        /* Primary blue (#0046FF) */
+  --billions-skyline: 181 100% 41%;    /* Secondary rgb(0,206,209) */
   --billions-grey-700: 210 15% 45%;    /* Grey 700 */
   --billions-grey-500: 210 15% 65%;    /* Grey 500 */
   --billions-white: 0 0% 100%;
   --billions-black: 0 0% 0%;
+  --billions-text: 224 53% 27%;        /* Text rgb(33,53,106) */
+  
   
   /* Updated color system with Billions palette */
   --color-background: var(--billions-white);
-  --color-foreground: var(--billions-navy);
+  --color-foreground: var(--billions-text);
   --color-card: var(--billions-white);
-  --color-card-foreground: var(--billions-navy);
+  --color-card-foreground: var(--billions-text);
   --color-popover: var(--billions-white);
-  --color-popover-foreground: var(--billions-navy);
+  --color-popover-foreground: var(--billions-text);
   --color-primary: var(--billions-navy);
   --color-primary-foreground: var(--billions-white);
   --color-secondary: var(--billions-skyline);
@@ -438,6 +440,91 @@ html {
 
 .billions-border {
   border-color: hsl(var(--billions-skyline));
+}
+
+/* Billions UI helpers to match app styling */
+.billions-text-black {
+  color: hsl(var(--billions-text));
+}
+
+.text-billions-text-primary {
+  color: hsl(var(--billions-text));
+}
+
+.billions-card {
+  background-color: hsl(var(--billions-white));
+  border: 1px solid hsl(var(--billions-skyline) / 0.25);
+  border-radius: 1.5rem; /* 24px */
+}
+
+.billions-card-soft {
+  background-color: hsl(var(--billions-skyline) / 0.08);
+  border: 1px solid hsl(var(--billions-skyline) / 0.25);
+  border-radius: 1.5rem; /* 24px */
+}
+
+.billions-heading {
+  color: hsl(var(--billions-text));
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.billions-subtle-bg {
+  background-color: hsl(var(--billions-skyline) / 0.06);
+}
+
+.billions-pill {
+  background-color: hsl(var(--billions-white));
+  border: 1px solid hsl(var(--billions-skyline) / 0.35);
+  color: hsl(var(--billions-text));
+  border-radius: 9999px;
+}
+
+.billions-tab {
+  border-radius: 9999px;
+  padding: 0.375rem 0.75rem;
+  font-weight: 700;
+}
+
+.billions-tab-active {
+  background-color: hsl(var(--billions-skyline));
+  color: white;
+}
+
+.billions-tab-inactive {
+  background-color: hsl(var(--billions-skyline) / 0.1);
+  color: hsl(var(--billions-text));
+}
+
+.billions-input {
+  background-color: white;
+  border: 1px solid hsl(var(--billions-skyline) / 0.25);
+  color: hsl(var(--billions-text));
+  border-radius: 0.875rem;
+}
+
+.billions-input:focus {
+  outline: none;
+  border-color: hsl(var(--billions-skyline));
+  box-shadow: 0 0 0 4px hsl(var(--billions-skyline) / 0.2);
+}
+
+.billions-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  background-color: hsl(var(--billions-skyline) / 0.12);
+  color: hsl(var(--billions-text));
+  border: 1px solid hsl(var(--billions-skyline) / 0.25);
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.8125rem;
+}
+
+.billions-soft-divider {
+  height: 1px;
+  background-color: hsl(var(--billions-skyline) / 0.2);
 }
 
 @keyframes billions-pulse {

@@ -36,17 +36,17 @@ export default function ProjectXAirdrop() {
   return (
     <div className="min-h-screen bg-white">
       {/* Subtle gradient overlay for visual interest */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-blue-50/30"></div>
+      <div className="absolute inset-0 billions-subtle-bg"></div>
       
       {/* Clean SaaS Header */}
       <header className="relative z-50 mt-8 mx-4 sm:mx-6 lg:mx-8">
-        <div className="bg-white border border-gray-200 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-500">
+        <div className="billions-card shadow-lg hover:shadow-xl transition-all duration-500">
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div>
                   <Link href="/">
-                    <h1 className="font-bold text-xl billions-text-primary">Project X</h1>
+                    <h1 className="font-bold text-xl billions-text-black">Project X</h1>
                   </Link>
                 </div>
               </div>
@@ -89,7 +89,7 @@ export default function ProjectXAirdrop() {
                 
                 <div className="bg-white border border-gray-200 rounded-[2.5rem] p-12 shadow-xl hover:shadow-2xl transition-all duration-700">
                   <h1 className="text-6xl lg:text-8xl font-black leading-tight mb-6">
-                    <span className="billions-text-primary">PROJECT X</span>
+                    <span className="billions-text-black">PROJECT X</span>
                     <span className="block text-5xl lg:text-7xl billions-accent mt-2">
                       AIRDROP
                     </span>
@@ -124,33 +124,33 @@ export default function ProjectXAirdrop() {
 
               {/* Clean Campaign Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
-                <Card className="bg-white border border-gray-200 hover:shadow-xl transition-all duration-500 hover:scale-105 rounded-3xl shadow-lg">
+                <Card className="billions-card-soft hover:shadow-xl transition-all duration-500 hover:scale-105">
                   <CardHeader className="text-center p-10">
-                    <div className="w-20 h-20 billions-bg-primary rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg">
-                      <Users className="w-10 h-10" style={{ color: "#fff" }} />
+                    <div className="w-20 h-20 billions-bg-secondary rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg">
+                      <Users className="w-10 h-10 text-billions-text-primary" />
                     </div>
-                    <CardTitle className="text-white text-4xl font-black">50,000+</CardTitle>
-                    <CardDescription className="text-gray-600 font-semibold text-base mt-2">Eligible Participants</CardDescription>
+                    <CardTitle className="text-billions-text-primary text-4xl font-black">50,000+</CardTitle>
+                    <CardDescription className="text-billions-text-primary font-semibold text-base mt-2">Eligible Participants</CardDescription>
                   </CardHeader>
                 </Card>
 
-                <Card className="bg-white border border-gray-200 hover:shadow-xl transition-all duration-500 hover:scale-105 rounded-3xl shadow-lg">
+                <Card className="billions-card-soft hover:shadow-xl transition-all duration-500 hover:scale-105">
                   <CardHeader className="text-center p-10">
-                    <div className="w-20 h-20 billions-bg-primary rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg">
-                      <Gift className="w-10 h-10" style={{ color: "#fff" }} />
+                    <div className="w-20 h-20 billions-bg-secondary rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg">
+                      <Gift className="w-10 h-10 text-billions-text-primary" />
                     </div>
-                    <CardTitle className="text-white text-4xl font-black">100</CardTitle>
-                    <CardDescription className="text-gray-600 font-semibold text-base mt-2">PROJECT X Tokens</CardDescription>
+                    <CardTitle className="text-billions-text-primary text-4xl font-black">100</CardTitle>
+                    <CardDescription className="text-billions-text-primary font-semibold text-base mt-2">PROJECT X Tokens</CardDescription>
                   </CardHeader>
                 </Card>
 
-                <Card className="bg-white border border-gray-200 hover:shadow-xl transition-all duration-500 hover:scale-105 rounded-3xl shadow-lg">
+                <Card className="billions-card-soft hover:shadow-xl transition-all duration-500 hover:scale-105">
                   <CardHeader className="text-center p-10">
-                    <div className="w-20 h-20 billions-bg-primary rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg">
-                      <Clock className="w-10 h-10" style={{ color: "#fff" }} />
+                    <div className="w-20 h-20 billions-bg-secondary rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg">
+                      <Clock className="w-10 h-10 text-billions-text-primary" />
                     </div>
-                    <CardTitle className="text-white text-4xl font-black">7 Days</CardTitle>
-                    <CardDescription className="text-gray-600 font-semibold text-base mt-2">Campaign Duration</CardDescription>
+                    <CardTitle className="text-billions-text-primary text-4xl font-black">7 Days</CardTitle>
+                    <CardDescription className="text-billions-text-primary font-semibold text-base mt-2">Campaign Duration</CardDescription>
                   </CardHeader>
                 </Card>
               </div>
