@@ -290,7 +290,7 @@ export default function ProjectXAirdrop() {
                 Powered by zero-knowledge proof technology for maximum privacy and security.
               </p>
               <div className="mt-8 pt-8 border-t border-white/20 text-sm text-white/50">
-                <p>&copy; 2024 Project X. Built with Billions Network x KRNL</p>
+                <p>&copy; 2025 Project X. Built with Billions Network x KRNL</p>
               </div>
             </div>
           </div>

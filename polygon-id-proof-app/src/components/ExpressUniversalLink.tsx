@@ -71,7 +71,7 @@ export default function ExpressUniversalLink() {
       // Create universal link directly
       // This approach doesn't modify the auth request from the server
       const encodedRequest = btoa(JSON.stringify(authRequest.request));
-      const link = `https://wallet.privado.id/#i_m=${encodedRequest}`;
+      const link = `https://wallet.billions.network/#i_m=${encodedRequest}`;
       setUniversalLink(link);
       
       // Generate QR code
