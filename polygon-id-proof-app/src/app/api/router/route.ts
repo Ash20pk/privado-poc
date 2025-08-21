@@ -26,7 +26,7 @@ export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': 'https://wallet.privado.id',
+      'Access-Control-Allow-Origin': 'https://wallet.billions.network',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Access-Control-Max-Age': '86400' // 24 hours
@@ -36,7 +36,7 @@ export async function OPTIONS(request: NextRequest) {
 
 // Define CORS headers once to reuse
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://wallet.privado.id',
+  'Access-Control-Allow-Origin': 'https://wallet.billions.network',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization'
 };
