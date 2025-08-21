@@ -2,7 +2,7 @@
 
 :root {
   /* Billions Brand Colors */
-  --billions-navy: 220 45% 25%;        /* Deep navy blue - primary */
+  --billions-navy: #0046ff;        /* Deep navy blue - primary */
   --billions-skyline: 195 100% 70%;    /* Bright cyan - secondary */
   --billions-grey-700: 210 15% 45%;    /* Grey 700 */
   --billions-grey-500: 210 15% 65%;    /* Grey 500 */
