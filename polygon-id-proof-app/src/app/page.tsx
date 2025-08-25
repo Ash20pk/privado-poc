@@ -102,26 +102,6 @@ export default function ProjectXAirdrop() {
                 </div>
               </div>
 
-              {/* Clean CTA Section */}
-              <div className="space-y-8">
-                <div className="bg-white border border-gray-200 rounded-3xl p-8 shadow-lg hover:shadow-xl transition-all duration-700 flex flex-col items-center">
-                  <Button 
-                    onClick={() => {
-                      connectWallet();
-                    }}
-                    size="lg" 
-                    className="billions-bg-primary text-white font-bold py-6 px-12 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 text-lg"
-                  >
-                    <Wallet className="w-6 h-6" style={{ color: "#fff" }} />
-                    <span style={{ color: "#fff" }}>Connect Wallet to Check Eligibility</span>
-                  </Button>
-                  
-                  <p className="text-sm text-gray-600 mt-4 font-medium">
-                    Wallet connection required to participate in the airdrop
-                  </p>
-                </div>
-              </div>
-
               {/* Clean Campaign Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
                 <Card className="billions-card-soft hover:shadow-xl transition-all duration-500 hover:scale-105">
